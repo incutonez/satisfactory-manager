@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+@import "tailwindcss";
+
+/* Turning off the prefers-color-scheme mode
+ * https://tailwindcss.com/docs/dark-mode#toggling-dark-mode-manually */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --default-font-family: "Open Sans";
+}
+
+html, body, #root {
+    @apply size-full;
+}
+
+#root {
+    @apply p-4;
+}
+
+body:has(dialog[open]) #root {
+    @apply blur-xs pointer-events-none;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+}
