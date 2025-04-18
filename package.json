@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "npx eslint --fix",
     "preview": "vite preview",
-    "generate:items": "npx tsx src/generator.ts"
+    "generate:items": "npx tsx src/generator.ts",
+    "update:deps": "node ./updateDependencies.js",
+    "update:versions": "node ./updateVersions.js"
   },
   "dependencies": {
     "@material-symbols/svg-400": "latest",
