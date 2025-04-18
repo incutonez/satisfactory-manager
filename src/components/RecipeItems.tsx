@@ -14,7 +14,7 @@ export interface IRecipeItems {
 }
 
 // TODOJEF: Use somersloop value
-export function RecipeItems({ items = [], overclock, somersloop, recipeType, highlightItem, machineCount }: IRecipeItems) {
+export function RecipeItems({ items = [], overclock, recipeType, highlightItem, machineCount }: IRecipeItems) {
 	overclock /= 100;
 	const itemNodes = items.map((item) => {
 		if (item.recipeType !== recipeType) {

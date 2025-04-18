@@ -17,7 +17,7 @@ export interface IFieldText<T = string> extends ComponentProps<"input"> {
 	onInputChange?: (value: string) => void;
 }
 
-export function FieldText({ value, autoFocus, onEnter, labelCls, labelPosition = "left", inputCls, inputWidth = "w-auto", type = "text", setter, label, onBlur = emptyFn, typeDelay = 250, onInputChange, placeholder }: IFieldText) {
+export function FieldText<T = string>({ value, autoFocus, onEnter, labelCls, labelPosition = "left", inputCls, inputWidth = "w-auto", type = "text", setter, label, onBlur = emptyFn, typeDelay = 250, onInputChange, placeholder }: IFieldText<T>) {
 	let labelEl: ReactNode;
 	const typeDelayTimer = useRef<TSetTimeout>(undefined);
 	const cls = ["flex"];
@@ -32,7 +32,7 @@ export function FieldText({ value, autoFocus, onEnter, labelCls, labelPosition =
 
 	function onChange({ target }: ChangeEvent<HTMLInputElement>) {
 		const { value } = target;
-		setter(value);
+		setter(value as T);
 		if (onInputChange) {
 			clearTimeout(typeDelayTimer.current);
 			typeDelayTimer.current = setTimeout(() => onInputChange(value), typeDelay);
@@ -41,7 +41,7 @@ export function FieldText({ value, autoFocus, onEnter, labelCls, labelPosition =
 
 	function onKeyDown({ key }: KeyboardEvent<HTMLInputElement>) {
 		if (key === "Enter" && onEnter) {
-			onEnter(value as string);
+			onEnter(value as T);
 		}
 	}
 

@@ -85,7 +85,7 @@ export function ViewRecipe({ show, setShow, onSave, record, recipeType, highligh
 						overclock={overclock}
 						somersloop={somersloop}
 					/>
-					<RecipeMachine record={record} />
+					<RecipeMachine record={recipeRecord} />
 					<RecipeItems
 						items={recipeRecord.items}
 						recipeType="produces"

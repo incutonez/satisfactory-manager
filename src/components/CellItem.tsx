@@ -3,7 +3,7 @@ import { getInventoryItem } from "@/api/inventory.ts";
 import { machines } from "@/api/machines.ts";
 import { IconArrowForward } from "@/components/Icons.tsx";
 import { useAppSelector } from "@/store.ts";
-import { IInventoryItem, IInventoryRecipe, TItemKey } from "@/types.ts";
+import { IInventoryItem, IRecipe, TItemKey } from "@/types.ts";
 
 interface IItemName {
 	cell: Cell<IInventoryItem, unknown>;
@@ -34,7 +34,8 @@ export function ItemImage({ itemId }: { itemId: TItemKey }) {
 	);
 }
 
-export function RecipeMachine({ record }: { record?: IInventoryRecipe }) {
+export function RecipeMachine({ record }: { record?: IRecipe }) {
+	console.log(record);
 	if (!record) {
 		return;
 	}
