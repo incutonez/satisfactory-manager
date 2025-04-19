@@ -9,13 +9,13 @@ import {
 	getActiveFactory,
 	getFactories,
 	IFactory,
-	loadFactories,
+	loadFactoriesThunk,
 	setActiveFactory,
 	setActiveFactoryName,
 } from "@/api/factories.ts";
 import {
 	addRecipe,
-	deleteRecipe, getActiveItem, getInventory,
+	deleteRecipe, findInventoryItemById, getActiveItem, getInventory,
 	loadInventory,
 	saveInventory,
 	setActiveItem, updateRecipe,
@@ -34,6 +34,15 @@ import { ViewInventoryItem } from "@/views/ViewInventoryItem.tsx";
 
 const columnHelper = createColumnHelper<IInventoryItem>();
 
+// TODOJEF: Move selectors to their stores
+// TODOJEF: Create store for activeItem
+// TODOJEF: Potentially add routing
+// TODOJEF: Move add factory dialog to its own component
+// TODOJEF: Any other misc cleanup
+// TODOJEF: Add ability to export and import factory data
+// TODOJEF: Make more thunks
+// TODOJEF: Move save localStorage stuff to common functions
+// TODOJEF: Deleting the Default Factory doesn't seem to properly work...
 export function ViewInventoryItems() {
 	let itemDialogNode;
 	const dispatch = useAppDispatch();
@@ -153,7 +162,7 @@ export function ViewInventoryItems() {
 
 	function onClickSave(updateRecord: IInventoryItem) {
 		// This gets the previous state of our record
-		const found = data.find((item) => item.id === updateRecord.id)!;
+		const found = findInventoryItemById(data, updateRecord.id)!;
 		const previousItems = found.recipes;
 		const updatedItems = updateRecord.recipes;
 		previousItems.forEach((item) => {
@@ -223,7 +232,7 @@ export function ViewInventoryItems() {
 	}
 
 	useEffect(() => {
-		dispatch(loadFactories());
+		dispatch(loadFactoriesThunk());
 	}, [dispatch]);
 
 	useEffect(() => {
@@ -234,6 +243,17 @@ export function ViewInventoryItems() {
 
 	return (
 		<article className="size-full flex flex-col space-y-2">
+			<h2 className="font-semibold text-xl mb-6">
+				<a
+					href="https://store.steampowered.com/app/526870/Satisfactory/"
+					className="underline text-blue-700"
+					target="_blank"
+				>
+					Satisfactory
+				</a>
+				{" "}
+				Production Manager
+			</h2>
 			<section className="flex">
 				<section className="flex space-x-2">
 					<ComboBox

@@ -1,7 +1,7 @@
 ﻿import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { IFactory } from "@/api/factories.ts";
 import defaultInventory from "@/api/inventory.json";
-import { RootState, store } from "@/store.ts";
+import { RootState } from "@/store.ts";
 import { IInventoryItem, IInventoryRecipe, TRecipeType } from "@/types.ts";
 import { calculateAmountDisplays, clone, sumRecipes } from "@/utils/common.ts";
 
@@ -126,22 +126,28 @@ export const inventorySlice = createSlice({
 			localStorage.removeItem(state.inventoryId);
 		},
 	},
+	selectors: {
+		getInventory(state) {
+			return state.inventory;
+		},
+		getInventoryItem(state, itemId: string) {
+			return findInventoryItemById(state.inventory, itemId);
+		},
+	},
 });
 
 export const { deleteInventory, addRecipe, updateRecipe, deleteRecipe, loadInventory, saveInventory, setActiveItem, updateActiveItemRecipe, deleteActiveItemRecipe } = inventorySlice.actions;
+
+export const { getInventory, getInventoryItem } = inventorySlice.selectors;
 
 export function selectInventory(state: RootState) {
 	return state.inventory;
 }
 
-export const getInventory = createSelector(selectInventory, (state) => state.inventory);
-
 export const getActiveItem = createSelector(selectInventory, (state) => state.activeItem);
 
 export const getActiveItemRecipes = createSelector([getActiveItem], (state) => state?.recipes ?? []);
 
-export const getInventoryItem = (itemId: string) => createSelector([getInventory], (state) => state.find((item) => item.id === itemId));
-
-export function getStateInventoryItem(itemId: string) {
-	return store.getState().inventory.inventory.find((item) => item.id === itemId);
+export function findInventoryItemById(inventory: IInventoryItem[], itemId: string) {
+	return inventory.find(({ id }) => id === itemId);
 }

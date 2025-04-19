@@ -1,6 +1,6 @@
-﻿import { createSelector, createSlice, PayloadAction, ThunkAction, UnknownAction } from "@reduxjs/toolkit";
+﻿import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { deleteInventory } from "@/api/inventory.ts";
-import { RootState } from "@/store.ts";
+import { AppThunk } from "@/store.ts";
 import { uuid } from "@/utils/common.ts";
 
 export interface IFactory {
@@ -22,23 +22,20 @@ export const factoriesSlice = createSlice({
 	name: "factories",
 	reducers: {
 		loadFactories(state) {
-			let factories: IFactory[] = [{
-				id: uuid(),
-				name: "Default Factory",
-			}];
+			let factories: IFactory[] = [];
 			const factoriesData = localStorage.getItem("factories");
 			if (factoriesData) {
 				factories = JSON.parse(factoriesData) as IFactory[];
 			}
 			else {
+				factories.push({
+					id: uuid(),
+					name: "Default Factory",
+				});
 				// Very first time, so we're setting the initial data
 				localStorage.setItem("factories", JSON.stringify(factories));
 			}
 			state.factories = factories;
-			factoriesSlice.caseReducers.setActiveFactory(state, {
-				type: "setActiveFactory",
-				payload: undefined,
-			});
 		},
 		setActiveFactory(state, { payload }: PayloadAction<IFactory | undefined | string>) {
 			if (typeof payload === "string") {
@@ -76,21 +73,28 @@ export const factoriesSlice = createSlice({
 			localStorage.setItem("factories", JSON.stringify(state.factories));
 		},
 	},
-	// TODOJEF: Move selectors to here?
-	// https://redux-toolkit.js.org/api/createSlice#selectors-1
+	selectors: {
+		getFactories(state) {
+			return state.factories;
+		},
+		getActiveFactory(state) {
+			return state.activeFactory;
+		},
+	},
 });
 
 export const { deleteFactory, setActiveFactory, setActiveFactoryName, loadFactories, addFactory } = factoriesSlice.actions;
 
-export function selectFactories(state: RootState) {
-	return state.factories;
+export const { getFactories, getActiveFactory } = factoriesSlice.selectors;
+
+export function loadFactoriesThunk(): AppThunk {
+	return function thunk(dispatch) {
+		dispatch(loadFactories());
+		dispatch(setActiveFactory());
+	};
 }
 
-export const getFactories = createSelector(selectFactories, (state) => state.factories);
-
-export const getActiveFactory = createSelector(selectFactories, (state) => state.activeFactory);
-
-export function deleteFactoryThunk(factory: IFactory): ThunkAction<void, RootState, unknown, UnknownAction> {
+export function deleteFactoryThunk(factory: IFactory): AppThunk {
 	return function thunk(dispatch) {
 		dispatch(deleteFactory(factory));
 		dispatch(deleteInventory());
@@ -98,7 +102,7 @@ export function deleteFactoryThunk(factory: IFactory): ThunkAction<void, RootSta
 	};
 }
 
-export function addFactoryThunk(factory: IFactory): ThunkAction<void, RootState, unknown, UnknownAction> {
+export function addFactoryThunk(factory: IFactory): AppThunk {
 	return function thunk(dispatch) {
 		dispatch(addFactory(factory));
 		dispatch(setActiveFactory(factory));

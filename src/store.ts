@@ -1,9 +1,11 @@
 ﻿import { useDispatch, useSelector } from "react-redux";
-import { combineSlices, configureStore } from "@reduxjs/toolkit";
+import { Action, combineSlices, configureStore, ThunkAction, UnknownAction } from "@reduxjs/toolkit";
 import { factoriesSlice } from "@/api/factories.ts";
 import { inventorySlice } from "@/api/inventory.ts";
 
 const reducer = combineSlices(inventorySlice, factoriesSlice);
+
+export type AppThunk<TAction extends Action = UnknownAction> = ThunkAction<void, RootState, unknown, TAction>;
 
 export const store = configureStore({
 	reducer,
