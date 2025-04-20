@@ -1,3 +1,9 @@
+## [1.1.4](https://github.com/incutonez/satisfactory-manager/compare/v1.1.3...v1.1.4) (2025-04-20)
+
+### Bug Fixes
+
+* Fixing Minor Somersloop Calculation for Inputs ([#11](https://github.com/incutonez/satisfactory-manager/issues/11)) ([e173748](https://github.com/incutonez/satisfactory-manager/commit/e17374869893e5fad8c1c71efa4d7c105cf4958b))
+
 ## [1.1.3](https://github.com/incutonez/satisfactory-manager/compare/v1.1.2...v1.1.3) (2025-04-20)
 
 ### Bug Fixes
