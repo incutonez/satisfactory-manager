@@ -1,6 +1,6 @@
 ﻿import justCapitalize from "just-capitalize";
 import MimeTypes from "mime-types";
-import { ICalculateAmountDisplays, IInventoryRecipe, TItemKey } from "@/types.ts";
+import { ICalculateAmountDisplays, IInventoryRecipe, TItemKey, TRecipeType } from "@/types.ts";
 
 const CapitalizeWordBoundary = /(?=[A-Z])/;
 
@@ -36,15 +36,14 @@ export function sumRecipes(value: IInventoryRecipe[], id: TItemKey) {
 	};
 }
 
-export function calculateSomersloop(somersloop: number) {
-	return 1 + (somersloop / 4);
+export function calculateSomersloop(somersloop: number, recipeType: TRecipeType) {
+	return recipeType === "produces" ? 1 + (somersloop / 4) : 1;
 }
 
 export function calculateAmountDisplays({ items, overclock, somersloop, machineCount }: ICalculateAmountDisplays) {
 	overclock /= 100;
-	somersloop = calculateSomersloop(somersloop);
-	const multiplier = overclock * machineCount * somersloop;
 	items.forEach((item) => {
+		const multiplier = overclock * machineCount * calculateSomersloop(somersloop, item.recipeType);
 		item.amountPerMinuteDisplay = item.amountPerMinute * multiplier;
 		item.amountPerCycleDisplay = item.amountPerCycle * multiplier;
 	});

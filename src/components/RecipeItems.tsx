@@ -8,7 +8,7 @@ import { calculateSomersloop, pluralize } from "@/utils/common.ts";
 export interface IRecipeItems {
 	items?: IRecipeItem[];
 	highlightItem?: TItemKey;
-	recipeType?: TRecipeType;
+	recipeType: TRecipeType;
 	overclock: number;
 	somersloop: number;
 	machineCount: number;
@@ -22,7 +22,7 @@ export interface RecipeItemComponent {
 
 export function RecipeItems({ items = [], overclock, recipeType, highlightItem, somersloop, machineCount }: IRecipeItems) {
 	overclock /= 100;
-	somersloop = calculateSomersloop(somersloop);
+	somersloop = calculateSomersloop(somersloop, recipeType);
 	const multiplier = overclock * machineCount * somersloop;
 	const itemNodes = items.map((item) => {
 		if (item.recipeType !== recipeType) {
