@@ -1,4 +1,4 @@
-﻿import { ReactNode } from "react";
+﻿import { ReactNode, useEffect } from "react";
 import {
 	Button as BaseButton,
 	ComboBox as BaseComboBox, ComboBoxProps,
@@ -53,10 +53,13 @@ export function ComboBox<TOption extends object>({ value, inputCls, setValue, se
 		if (setValue) {
 			setValue(key);
 		}
-		if (setSelection) {
-			setSelection(options.find((option) => option[valueField] === key));
-		}
 	}
+
+	useEffect(() => {
+		if (setSelection) {
+			setSelection(options.find((option) => option[valueField] === value));
+		}
+	}, [options, valueField, value, setSelection]);
 
 	return (
 		<BaseComboBox

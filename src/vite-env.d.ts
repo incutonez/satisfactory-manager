@@ -3,8 +3,8 @@
 import { Cell, Header, RowData } from "@tanstack/react-table";
 
 declare module "@tanstack/react-table" {
-	interface ColumnMeta<TData extends RowData, TValue> {
-		cellCls?: string
+	interface ColumnMeta<TData extends RowData> {
+		cellCls?: string;
 		footerCls?: (header: Header<TData, unknown>) => string;
 		columnWidth?: string;
 		canClick?: boolean;

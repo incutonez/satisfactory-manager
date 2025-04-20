@@ -1,11 +1,11 @@
 ﻿import { useCallback, useEffect, useState } from "react";
+import { Outlet, useNavigate } from "@tanstack/react-router";
 import {
 	createColumnHelper,
 	getCoreRowModel, getFilteredRowModel, getSortedRowModel, SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
 import { version } from "@/../package.json";
-import { getActiveItem, setActiveItem } from "@/api/activeItem.ts";
 import { deleteFactoryThunk,
 	getActiveFactory,
 	getFactories,
@@ -15,7 +15,6 @@ import {
 	clearInventoryThunk, downloadInventory,
 	getInventory,
 	loadInventory,
-	updateRecipesThunk,
 } from "@/api/inventory.ts";
 import { BaseButton } from "@/components/BaseButton.tsx";
 import { BaseDropdown } from "@/components/BaseDropdown.tsx";
@@ -25,18 +24,17 @@ import { ComboBox, TComboBoxValue } from "@/components/ComboBox.tsx";
 import { FieldText } from "@/components/FieldText.tsx";
 import { IconAdd, IconDelete, IconDownload, IconEdit, IconImport, IconRevert } from "@/components/Icons.tsx";
 import { TableData } from "@/components/TableData.tsx";
+import { RouteViewItem } from "@/routes.ts";
 import { useAppDispatch, useAppSelector } from "@/store.ts";
-import { IInventoryItem, TRecipeType } from "@/types.ts";
+import { IInventoryItem } from "@/types.ts";
 import { ViewFactory } from "@/views/ViewFactory.tsx";
 import { ViewImport } from "@/views/ViewImport.tsx";
-import { ViewInventoryItem } from "@/views/ViewInventoryItem.tsx";
 
 const columnHelper = createColumnHelper<IInventoryItem>();
 
-// TODOJEF: Potentially add routing
 export function ViewInventoryItems() {
-	let itemDialogNode;
 	const dispatch = useAppDispatch();
+	const navigate = useNavigate();
 	const factories = useAppSelector(getFactories);
 	const activeFactory = useAppSelector(getActiveFactory);
 	const [factoryDialogName, setFactoryDialogName] = useState<string | undefined>("");
@@ -52,9 +50,13 @@ export function ViewInventoryItems() {
 		meta: {
 			cellCls: "text-right",
 			onClickCell(cell) {
-				dispatch(setActiveItem(cell.row.original));
-				setRecipeType("produces");
-				setShowItemDialog(true);
+				navigate({
+					to: RouteViewItem,
+					params: {
+						itemId: cell.row.original.id,
+						recipeType: "produces",
+					},
+				});
 			},
 		},
 	}), columnHelper.accessor("consumingTotal", {
@@ -63,9 +65,13 @@ export function ViewInventoryItems() {
 		meta: {
 			cellCls: "text-right",
 			onClickCell(cell) {
-				dispatch(setActiveItem(cell.row.original));
-				setRecipeType("consumes");
-				setShowItemDialog(true);
+				navigate({
+					to: RouteViewItem,
+					params: {
+						itemId: cell.row.original.id,
+						recipeType: "consumes",
+					},
+				});
 			},
 		},
 	}), columnHelper.accessor("total", {
@@ -74,18 +80,19 @@ export function ViewInventoryItems() {
 		meta: {
 			cellCls: "text-right",
 			onClickCell(cell) {
-				dispatch(setActiveItem(cell.row.original));
-				setRecipeType(undefined);
-				setShowItemDialog(true);
+				navigate({
+					to: RouteViewItem,
+					params: {
+						itemId: cell.row.original.id,
+						recipeType: "both",
+					},
+				});
 			},
 		},
 	})]);
 	const [search, setSearch] = useState<string | undefined>("");
-	const [recipeType, setRecipeType] = useState<TRecipeType>();
 	const [globalFilter, setGlobalFilter] = useState<string>();
-	const [showItemDialog, setShowItemDialog] = useState(false);
 	const data = useAppSelector(getInventory);
-	const activeCell = useAppSelector(getActiveItem);
 	const [sorting, setSorting] = useState<SortingState>([{
 		id: "name",
 		desc: false,
@@ -110,24 +117,8 @@ export function ViewInventoryItems() {
 		}
 	}, [dispatch, activeFactory]);
 
-	if (showItemDialog && activeCell) {
-		itemDialogNode = (
-			<ViewInventoryItem
-				recipeType={recipeType}
-				show={showItemDialog}
-				setShow={setShowItemDialog}
-				onClickSave={onClickSave}
-			/>
-		);
-	}
-
 	function onChangeSearch(searchValue: string) {
 		table.setGlobalFilter(searchValue);
-	}
-
-	function onClickSave(updateRecord: IInventoryItem) {
-		dispatch(updateRecipesThunk(updateRecord));
-		setShowItemDialog(false);
 	}
 
 	function onClickClearData() {
@@ -255,7 +246,6 @@ export function ViewInventoryItems() {
 			<TableData<IInventoryItem>
 				table={table}
 			/>
-			{itemDialogNode}
 			<ViewFactory
 				isEdit={isEditFactory}
 				factoryName={factoryDialogName}
@@ -266,6 +256,7 @@ export function ViewInventoryItems() {
 				show={showImportDialog}
 				setShow={setShowImportDialog}
 			/>
+			<Outlet />
 		</article>
 	);
 }

@@ -1,30 +1,32 @@
-﻿import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
+import { Outlet, useNavigate, useParams } from "@tanstack/react-router";
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from "@tanstack/react-table";
-import { deleteItemRecipe, getActiveItem, getActiveItemRecipes, updateItemRecipe } from "@/api/activeItem.ts";
+import { deleteItemRecipe, getActiveItem, getActiveItemRecipes } from "@/api/activeItem.ts";
+import { updateRecipesThunk } from "@/api/inventory.ts";
 import { BaseButton } from "@/components/BaseButton.tsx";
 import { BaseDialog, IBaseDialog } from "@/components/BaseDialog.tsx";
 import { IconAdd, IconDelete, IconEdit, IconSave } from "@/components/Icons.tsx";
 import { TableData } from "@/components/TableData.tsx";
-import { useAppSelector } from "@/store.ts";
-import { IInventoryItem, IInventoryRecipe, IRecipeItem, TRecipeType } from "@/types.ts";
-import { ViewRecipe } from "@/views/ViewRecipe.tsx";
+import { RouteCreate, RouteViewItem, RouteViewItems, RouteViewRecipe } from "@/routes.ts";
+import { useAppDispatch, useAppSelector } from "@/store.ts";
+import { IInventoryRecipe, IRecipeItem, TRecipeType } from "@/types.ts";
 
 export interface IViewItem extends IBaseDialog {
 	recipeType?: TRecipeType;
-	onClickSave: (recipes: IInventoryItem) => void;
 }
 
-export function ViewInventoryItem({ show, setShow, onClickSave, recipeType }: IViewItem) {
-	let viewRecipeNode;
-	const dispatch = useDispatch();
+export function ViewInventoryItem({ show }: IViewItem) {
+	const { recipeType, itemId } = useParams({
+		from: RouteViewItem,
+	});
+	const dispatch = useAppDispatch();
+	const navigate = useNavigate();
 	const record = useAppSelector(getActiveItem);
 	const records = useAppSelector(getActiveItemRecipes);
-	const [data, setData] = useState<IInventoryRecipe[]>(records);
+	const [data, setData] = useState<IInventoryRecipe[]>(records ?? []);
 	const [columns, setColumns] = useState<ColumnDef<IInventoryRecipe>[]>([]);
-	const [selectedRecipe, setSelectedRecipe] = useState<IInventoryRecipe>();
-	const [showRecipe, setShowRecipe] = useState(false);
 	const [sorting, setSorting] = useState<SortingState>([]);
+	const showAllRecipes = useMemo(() => recipeType === "both", [recipeType]);
 	const table = useReactTable({
 		data,
 		columns,
@@ -35,16 +37,51 @@ export function ViewInventoryItem({ show, setShow, onClickSave, recipeType }: IV
 			sorting,
 		},
 	});
+	const viewRecipe = useCallback((recipeId: string) => {
+		navigate({
+			to: RouteViewRecipe,
+			params: {
+				recipeType,
+				itemId,
+				recipeId,
+			},
+		});
+	}, [navigate, recipeType, itemId]);
+	const onClickEditRecipe = useCallback(({ id }: IInventoryRecipe) => {
+		viewRecipe(id);
+	}, [viewRecipe]);
+
+	function setShow(show: boolean) {
+		if (!show) {
+			viewInventory();
+		}
+	}
+
+	function viewInventory() {
+		navigate({
+			to: RouteViewItems,
+		});
+	}
+
+	function onClickSave() {
+		if (record) {
+			dispatch(updateRecipesThunk(record));
+			viewInventory();
+		}
+		// Navigate back
+	}
 
 	useEffect(() => {
-		const recordId = record?.id;
-		if (recipeType) {
-			setData(records.filter(({ items }) => items.filter((item) => item.recipeType === recipeType && item.itemId === recordId).length));
+		if (records) {
+			const recordId = record?.id;
+			if (showAllRecipes) {
+				setData(records);
+			}
+			else {
+				setData(records.filter(({ items }) => items.filter((item) => item.recipeType === recipeType && item.itemId === recordId).length));
+			}
 		}
-		else {
-			setData(records);
-		}
-	}, [records, recipeType, record?.id]);
+	}, [showAllRecipes, records, recipeType, record?.id]);
 
 	useEffect(() => {
 		const recordId = record?.id;
@@ -60,10 +97,7 @@ export function ViewInventoryItem({ show, setShow, onClickSave, recipeType }: IV
 						<BaseButton
 							icon={IconDelete}
 							title="Delete Recipe"
-							onClick={() => dispatch(deleteItemRecipe({
-								recipeType,
-								record: info.row.original,
-							}))}
+							onClick={() => dispatch(deleteItemRecipe(info.row.original))}
 						/>
 						<BaseButton
 							icon={IconEdit}
@@ -102,7 +136,7 @@ export function ViewInventoryItem({ show, setShow, onClickSave, recipeType }: IV
 				columnWidth: "min-w-auto",
 			},
 		}];
-		if (recipeType === "produces" || !recipeType) {
+		if (showAllRecipes || recipeType === "produces") {
 			columnDefs.push({
 				header: "Produces",
 				id: "produces_items",
@@ -126,7 +160,7 @@ export function ViewInventoryItem({ show, setShow, onClickSave, recipeType }: IV
 				footer: () => record?.producingTotal || "-",
 			});
 		}
-		if (recipeType === "consumes" || !recipeType) {
+		if (showAllRecipes || recipeType === "consumes") {
 			columnDefs.push({
 				header: "Consumes",
 				id: "consumes_items",
@@ -150,7 +184,7 @@ export function ViewInventoryItem({ show, setShow, onClickSave, recipeType }: IV
 				footer: () => record?.consumingTotal || "-",
 			});
 		}
-		if (!recipeType) {
+		if (showAllRecipes) {
 			columnDefs.push({
 				header: "Remaining",
 				meta: {
@@ -183,7 +217,14 @@ export function ViewInventoryItem({ show, setShow, onClickSave, recipeType }: IV
 			id: "recipeName",
 			desc: false,
 		}]);
-	}, [recipeType, setColumns, record, dispatch]);
+	}, [
+		onClickEditRecipe,
+		showAllRecipes,
+		recipeType,
+		setColumns,
+		record,
+		dispatch,
+	]);
 
 	if (!record) {
 		return;
@@ -200,37 +241,12 @@ export function ViewInventoryItem({ show, setShow, onClickSave, recipeType }: IV
 		<BaseButton
 			text="Save"
 			icon={IconSave}
-			onClick={() => onClickSave(record)}
+			onClick={onClickSave}
 		/>
 	);
-	if (showRecipe) {
-		viewRecipeNode = (
-			<ViewRecipe
-				record={selectedRecipe}
-				recipeType={recipeType}
-				highlightItem={record.id}
-				show={showRecipe}
-				setShow={setShowRecipe}
-				onSave={onSaveRecipe}
-			/>
-		);
-	}
 
 	function onClickAddRecipe() {
-		setSelectedRecipe(undefined);
-		setShowRecipe(true);
-	}
-
-	function onClickEditRecipe(recipe: IInventoryRecipe) {
-		setSelectedRecipe(recipe);
-		setShowRecipe(true);
-	}
-
-	function onSaveRecipe(record: IInventoryRecipe) {
-		dispatch(updateItemRecipe({
-			record,
-			recipeType,
-		}));
+		viewRecipe(RouteCreate);
 	}
 
 	return (
@@ -256,7 +272,7 @@ export function ViewInventoryItem({ show, setShow, onClickSave, recipeType }: IV
 					/>
 				</article>
 			</BaseDialog>
-			{viewRecipeNode}
+			<Outlet />
 		</>
 	);
 }
