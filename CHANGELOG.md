@@ -1,3 +1,9 @@
+## [1.1.3](https://github.com/incutonez/satisfactory-manager/compare/v1.1.2...v1.1.3) (2025-04-20)
+
+### Bug Fixes
+
+* Including Somersloop Calculations ([#10](https://github.com/incutonez/satisfactory-manager/issues/10)) ([62bd001](https://github.com/incutonez/satisfactory-manager/commit/62bd001ff6baaa01981f38aff125c7a34f52d4b5))
+
 ## [1.1.2](https://github.com/incutonez/satisfactory-manager/compare/v1.1.1...v1.1.2) (2025-04-20)
 
 ### Bug Fixes
