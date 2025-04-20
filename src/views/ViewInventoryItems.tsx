@@ -4,45 +4,36 @@ import {
 	getCoreRowModel, getFilteredRowModel, getSortedRowModel, SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
-import {
-	addFactoryThunk, deleteFactoryThunk,
+import { version } from "@/../package.json";
+import { getActiveItem, setActiveItem } from "@/api/activeItem.ts";
+import { deleteFactoryThunk,
 	getActiveFactory,
 	getFactories,
-	IFactory,
 	loadFactoriesThunk,
-	setActiveFactory,
-	setActiveFactoryName,
-} from "@/api/factories.ts";
+	setActiveFactory } from "@/api/factories.ts";
 import {
-	addRecipe,
-	deleteRecipe, findInventoryItemById, getActiveItem, getInventory,
+	clearInventoryThunk, downloadInventory,
+	getInventory,
 	loadInventory,
-	saveInventory,
-	setActiveItem, updateRecipe,
+	updateRecipesThunk,
 } from "@/api/inventory.ts";
 import { BaseButton } from "@/components/BaseButton.tsx";
-import { BaseDialog } from "@/components/BaseDialog.tsx";
+import { BaseDropdown } from "@/components/BaseDropdown.tsx";
+import { BaseMenuItem } from "@/components/BaseMenuItem.tsx";
 import { ItemName } from "@/components/CellItem.tsx";
 import { ComboBox, TComboBoxValue } from "@/components/ComboBox.tsx";
 import { FieldText } from "@/components/FieldText.tsx";
-import { IconAdd, IconDelete, IconEdit, IconRevert, IconSave } from "@/components/Icons.tsx";
+import { IconAdd, IconDelete, IconDownload, IconEdit, IconImport, IconRevert } from "@/components/Icons.tsx";
 import { TableData } from "@/components/TableData.tsx";
 import { useAppDispatch, useAppSelector } from "@/store.ts";
 import { IInventoryItem, TRecipeType } from "@/types.ts";
-import { uuid } from "@/utils/common.ts";
+import { ViewFactory } from "@/views/ViewFactory.tsx";
+import { ViewImport } from "@/views/ViewImport.tsx";
 import { ViewInventoryItem } from "@/views/ViewInventoryItem.tsx";
 
 const columnHelper = createColumnHelper<IInventoryItem>();
 
-// TODOJEF: Move selectors to their stores
-// TODOJEF: Create store for activeItem
 // TODOJEF: Potentially add routing
-// TODOJEF: Move add factory dialog to its own component
-// TODOJEF: Any other misc cleanup
-// TODOJEF: Add ability to export and import factory data
-// TODOJEF: Make more thunks
-// TODOJEF: Move save localStorage stuff to common functions
-// TODOJEF: Deleting the Default Factory doesn't seem to properly work...
 export function ViewInventoryItems() {
 	let itemDialogNode;
 	const dispatch = useAppDispatch();
@@ -50,15 +41,8 @@ export function ViewInventoryItems() {
 	const activeFactory = useAppSelector(getActiveFactory);
 	const [factoryDialogName, setFactoryDialogName] = useState<string | undefined>("");
 	const [showFactoryDialog, setShowFactoryDialog] = useState(false);
+	const [showImportDialog, setShowImportDialog] = useState(false);
 	const [isEditFactory, setIsEditFactory] = useState(false);
-	const factoryDialogFooter = (
-		<BaseButton
-			text="Save"
-			icon={IconSave}
-			disabled={!factoryDialogName}
-			onClick={onClickSaveFactory}
-		/>
-	);
 	const [columns] = useState([columnHelper.accessor("name", {
 		header: "Name",
 		cell: (info) => <ItemName cell={info.cell} />,
@@ -137,68 +121,25 @@ export function ViewInventoryItems() {
 		);
 	}
 
-	function saveFactory() {
-		if (!factoryDialogName) {
-			return;
-		}
-		if (isEditFactory) {
-			dispatch(setActiveFactoryName({
-				name: factoryDialogName,
-				id: activeFactory!.id,
-			}));
-		}
-		else {
-			dispatch(addFactoryThunk({
-				id: uuid(),
-				name: factoryDialogName,
-			}));
-		}
-		setShowFactoryDialog(false);
-	}
-
 	function onChangeSearch(searchValue: string) {
 		table.setGlobalFilter(searchValue);
 	}
 
 	function onClickSave(updateRecord: IInventoryItem) {
-		// This gets the previous state of our record
-		const found = findInventoryItemById(data, updateRecord.id)!;
-		const previousItems = found.recipes;
-		const updatedItems = updateRecord.recipes;
-		previousItems.forEach((item) => {
-			const { id } = item;
-			if (!updatedItems.find((recipe) => recipe.id === id)) {
-				dispatch(deleteRecipe(item));
-			}
-		});
-		for (const item of updatedItems) {
-			const { id } = item;
-			const foundPreviousItem = previousItems.find((previousItem) => previousItem.id === id);
-			// No changes, skip
-			if (foundPreviousItem === item) {
-				continue;
-			}
-			// Already exists but has changes
-			else if (foundPreviousItem) {
-				dispatch(updateRecipe(item));
-			}
-			// Not found, new record
-			else {
-				dispatch(addRecipe(item));
-			}
-		}
-		dispatch(saveInventory(false));
-		reloadInventory();
+		dispatch(updateRecipesThunk(updateRecord));
 		setShowItemDialog(false);
 	}
 
 	function onClickClearData() {
-		dispatch(saveInventory(true));
-		reloadInventory();
+		dispatch(clearInventoryThunk());
 	}
 
-	function onSetActiveFactory(factory?: IFactory) {
-		dispatch(setActiveFactory(factory));
+	function onClickDownloadData() {
+		dispatch(downloadInventory());
+	}
+
+	function onClickImportData() {
+		setShowImportDialog(true);
 	}
 
 	function onSetFactory(factoryId?: TComboBoxValue) {
@@ -223,14 +164,6 @@ export function ViewInventoryItems() {
 		}
 	}
 
-	function onClickSaveFactory() {
-		saveFactory();
-	}
-
-	function onEnterFactory() {
-		saveFactory();
-	}
-
 	useEffect(() => {
 		dispatch(loadFactoriesThunk());
 	}, [dispatch]);
@@ -243,16 +176,26 @@ export function ViewInventoryItems() {
 
 	return (
 		<article className="size-full flex flex-col space-y-2">
-			<h2 className="font-semibold text-xl mb-6">
+			<h2 className="font-semibold text-xl mb-4">
 				<a
 					href="https://store.steampowered.com/app/526870/Satisfactory/"
-					className="underline text-blue-700"
+					className="link"
 					target="_blank"
 				>
 					Satisfactory
 				</a>
 				{" "}
-				Production Manager
+				<span>
+					Production Manager
+					<a
+						className="link ml-1"
+						href="https://github.com/incutonez/satisfactory-manager/blob/main/CHANGELOG.md"
+						target="_blank"
+					>
+						v
+						{version}
+					</a>
+				</span>
 			</h2>
 			<section className="flex">
 				<section className="flex space-x-2">
@@ -263,28 +206,40 @@ export function ViewInventoryItems() {
 						valueField="id"
 						displayField="name"
 						setValue={onSetFactory}
-						setSelection={onSetActiveFactory}
 					/>
+					<BaseDropdown>
+						<BaseMenuItem
+							icon={IconEdit}
+							text="Edit"
+							onAction={onClickEditFactory}
+						/>
+						<BaseMenuItem
+							text="Delete"
+							icon={IconDelete}
+							onAction={onClickDeleteFactory}
+							isDisabled={factories?.length <= 1}
+						/>
+						<BaseMenuItem
+							text="Clear"
+							icon={IconRevert}
+							onAction={onClickClearData}
+						/>
+						<BaseMenuItem
+							text="Download"
+							icon={IconDownload}
+							onAction={onClickDownloadData}
+						/>
+						<BaseMenuItem
+							text="Import"
+							icon={IconImport}
+							onAction={onClickImportData}
+						/>
+					</BaseDropdown>
 					<BaseButton
+						text="Factory"
 						title="Add New Factory"
 						icon={IconAdd}
 						onClick={onClickAddFactory}
-					/>
-					<BaseButton
-						title="Edit Factory Name"
-						icon={IconEdit}
-						onClick={onClickEditFactory}
-					/>
-					<BaseButton
-						title="Delete Factory"
-						icon={IconDelete}
-						onClick={onClickDeleteFactory}
-						disabled={factories?.length <= 1}
-					/>
-					<BaseButton
-						title="Clear Data"
-						icon={IconRevert}
-						onClick={onClickClearData}
 					/>
 				</section>
 				<section className="ml-auto flex space-x-2">
@@ -301,24 +256,16 @@ export function ViewInventoryItems() {
 				table={table}
 			/>
 			{itemDialogNode}
-			<BaseDialog
-				title={isEditFactory ? "Edit Factory" : "Add Factory"}
-				size="size-fit"
-				bodyCls="p-4"
-				footerSlot={factoryDialogFooter}
+			<ViewFactory
+				isEdit={isEditFactory}
+				factoryName={factoryDialogName}
 				show={showFactoryDialog}
 				setShow={setShowFactoryDialog}
-			>
-				<article>
-					<FieldText
-						label="Name"
-						autoFocus={true}
-						value={factoryDialogName}
-						setter={setFactoryDialogName}
-						onEnter={onEnterFactory}
-					/>
-				</article>
-			</BaseDialog>
+			/>
+			<ViewImport
+				show={showImportDialog}
+				setShow={setShowImportDialog}
+			/>
 		</article>
 	);
 }

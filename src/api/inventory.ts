@@ -1,21 +1,15 @@
-﻿import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { IFactory } from "@/api/factories.ts";
+﻿import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { getActiveFactory, IFactory, loadFactoryInventoryThunk } from "@/api/factories.ts";
 import defaultInventory from "@/api/inventory.json";
-import { RootState } from "@/store.ts";
-import { IInventoryItem, IInventoryRecipe, TRecipeType } from "@/types.ts";
-import { calculateAmountDisplays, clone, sumRecipes } from "@/utils/common.ts";
+import { AppThunk } from "@/store.ts";
+import { IInventoryItem, IInventoryRecipe } from "@/types.ts";
+import { clone, downloadFile, sumRecipes } from "@/utils/common.ts";
 
 export const inventoryItems = defaultInventory as IInventoryItem[];
 
 export interface IState {
 	inventory: IInventoryItem[];
 	inventoryId: string;
-	activeItem?: IInventoryItem;
-}
-
-export interface IActiveItemPayload {
-	record: IInventoryRecipe;
-	recipeType?: TRecipeType;
 }
 
 const initialState: IState = {
@@ -27,9 +21,6 @@ export const inventorySlice = createSlice({
 	initialState,
 	name: "inventory",
 	reducers: {
-		setActiveItem(state, { payload }: PayloadAction<IInventoryItem>) {
-			state.activeItem = payload;
-		},
 		deleteRecipe(state, { payload }: PayloadAction<IInventoryRecipe>) {
 			payload.items.forEach(({ itemId }) => {
 				const found = state.inventory.find((record) => record.id === itemId);
@@ -67,41 +58,8 @@ export const inventorySlice = createSlice({
 				}
 			}
 		},
-		updateActiveItemRecipe({ activeItem }, { payload }: PayloadAction<IActiveItemPayload>) {
-			if (!activeItem) {
-				return;
-			}
-			const { record } = payload;
-			const { id, overclockValue, machineCount, items } = record;
-			const { recipes } = activeItem;
-			const foundIndex = recipes.findIndex((item) => item.id === id) ?? -1;
-			calculateAmountDisplays(items, overclockValue, machineCount);
-			if (foundIndex >= 0) {
-				recipes[foundIndex] = record;
-			}
-			else {
-				recipes.push(record);
-			}
-			const { produces, consumes } = sumRecipes(recipes, activeItem.id);
-			activeItem.producingTotal = produces;
-			activeItem.consumingTotal = consumes;
-		},
-		deleteActiveItemRecipe({ activeItem }, { payload }: PayloadAction<IActiveItemPayload>) {
-			if (!activeItem) {
-				return;
-			}
-			const { id } = payload.record;
-			const { recipes } = activeItem;
-			const foundIndex = recipes.findIndex((item) => item.id === id) ?? -1;
-			if (foundIndex >= 0) {
-				recipes.splice(foundIndex, 1);
-			}
-			const { produces, consumes } = sumRecipes(recipes, activeItem.id);
-			activeItem.producingTotal = produces;
-			activeItem.consumingTotal = consumes;
-		},
 		loadInventory(state, { payload }: PayloadAction<IFactory>) {
-			const inventoryId = `inventory_${payload.id}`;
+			const inventoryId = `factory_${payload.id}_inventory`;
 			const data = localStorage.getItem(inventoryId);
 			const inventory: IInventoryItem[] = data ? JSON.parse(data) : clone(inventoryItems);
 			inventory.forEach((item) => {
@@ -125,6 +83,9 @@ export const inventorySlice = createSlice({
 		deleteInventory(state) {
 			localStorage.removeItem(state.inventoryId);
 		},
+		importInventory(state, { payload }: PayloadAction<IInventoryItem[]>) {
+			state.inventory = payload;
+		},
 	},
 	selectors: {
 		getInventory(state) {
@@ -136,18 +97,67 @@ export const inventorySlice = createSlice({
 	},
 });
 
-export const { deleteInventory, addRecipe, updateRecipe, deleteRecipe, loadInventory, saveInventory, setActiveItem, updateActiveItemRecipe, deleteActiveItemRecipe } = inventorySlice.actions;
+export const { importInventory, deleteInventory, addRecipe, updateRecipe, deleteRecipe, loadInventory, saveInventory } = inventorySlice.actions;
 
 export const { getInventory, getInventoryItem } = inventorySlice.selectors;
 
-export function selectInventory(state: RootState) {
-	return state.inventory;
-}
-
-export const getActiveItem = createSelector(selectInventory, (state) => state.activeItem);
-
-export const getActiveItemRecipes = createSelector([getActiveItem], (state) => state?.recipes ?? []);
-
 export function findInventoryItemById(inventory: IInventoryItem[], itemId: string) {
 	return inventory.find(({ id }) => id === itemId);
+}
+
+export function downloadInventory(): AppThunk {
+	return function thunk(_dispatch, getState) {
+		const inventory = getInventory(getState());
+		const factoryName = getActiveFactory(getState())?.name;
+		downloadFile(new Blob([JSON.stringify(inventory)], {
+			type: "application/json",
+		}), factoryName);
+	};
+}
+
+export function clearInventoryThunk(): AppThunk {
+	return function thunk(dispatch) {
+		dispatch(saveInventory(true));
+		dispatch(loadFactoryInventoryThunk());
+	};
+}
+
+export function importInventoryThunk(inventory: IInventoryItem[]): AppThunk {
+	return function thunk(dispatch) {
+		dispatch(importInventory(inventory));
+		dispatch(saveInventory(false));
+	};
+}
+
+export function updateRecipesThunk(updateRecord: IInventoryItem): AppThunk {
+	return function thunk(dispatch, getState) {
+		// This gets the previous state of our record
+		const found = findInventoryItemById(getInventory(getState()), updateRecord.id)!;
+		const previousItems = found.recipes;
+		const updatedItems = updateRecord.recipes;
+		previousItems.forEach((item) => {
+			const { id } = item;
+			if (!updatedItems.find((recipe) => recipe.id === id)) {
+				dispatch(deleteRecipe(item));
+			}
+		});
+		for (const item of updatedItems) {
+			const { id } = item;
+			const foundPreviousItem = previousItems.find((previousItem) => previousItem.id === id);
+			// No changes, skip
+			if (foundPreviousItem === item) {
+				continue;
+			}
+			// Already exists but has changes
+			else if (foundPreviousItem) {
+				dispatch(updateRecipe(item));
+			}
+			// Not found, new record
+			else {
+				dispatch(addRecipe(item));
+			}
+		}
+		dispatch(saveInventory(false));
+		dispatch(loadFactoryInventoryThunk());
+	};
 }

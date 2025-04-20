@@ -1,4 +1,4 @@
-﻿import { ReactNode, useEffect } from "react";
+﻿import { ReactNode } from "react";
 import {
 	Button as BaseButton,
 	ComboBox as BaseComboBox, ComboBoxProps,
@@ -6,9 +6,9 @@ import {
 	Label as BaseLabel,
 	ListBox as BaseListBox,
 	ListBoxItem as BaseListBoxItem,
-	Popover as BasePopover,
 } from "react-aria-components";
 import classNames from "classnames";
+import { BasePopover } from "@/components/BasePopover.tsx";
 import { IconArrowDown } from "@/components/Icons.tsx";
 import { getData } from "@/utils/common.ts";
 
@@ -53,22 +53,19 @@ export function ComboBox<TOption extends object>({ value, inputCls, setValue, se
 		if (setValue) {
 			setValue(key);
 		}
-	}
-
-	useEffect(() => {
 		if (setSelection) {
-			setSelection(options.find((item) => item[valueField] === value));
+			setSelection(options.find((option) => option[valueField] === key));
 		}
-	}, [options, valueField, setSelection, value]);
+	}
 
 	return (
 		<BaseComboBox
-			{...props}
 			className="h-8 flex items-center"
 			items={options}
 			menuTrigger={menuTrigger}
 			selectedKey={value}
 			onSelectionChange={onSelectionChange}
+			{...props}
 		>
 			{labelEl}
 			<BaseInput className={inputCls} />
@@ -77,8 +74,7 @@ export function ComboBox<TOption extends object>({ value, inputCls, setValue, se
 			</BaseButton>
 			<BasePopover
 				maxHeight={listHeight}
-				offset={2}
-				className="rounded-md w-(--trigger-width) border overflow-auto bg-white shadow-lg"
+				className="w-(--trigger-width)"
 			>
 				<BaseListBox>
 					{children}

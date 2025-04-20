@@ -1,5 +1,5 @@
 ﻿import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { deleteInventory } from "@/api/inventory.ts";
+import { deleteInventory, loadInventory } from "@/api/inventory.ts";
 import { AppThunk } from "@/store.ts";
 import { uuid } from "@/utils/common.ts";
 
@@ -39,12 +39,12 @@ export const factoriesSlice = createSlice({
 		},
 		setActiveFactory(state, { payload }: PayloadAction<IFactory | undefined | string>) {
 			if (typeof payload === "string") {
-				payload = state.factories.find(({ id }) => id === payload);
+				payload = findFactoryById(state.factories, payload);
 			}
 			if (!payload) {
 				const activeFactoryId = localStorage.getItem("activeFactoryId");
 				if (activeFactoryId) {
-					payload = state.factories.find(({ id }) => id === activeFactoryId);
+					payload = findFactoryById(state.factories, activeFactoryId);
 				}
 				else {
 					payload = state.factories[0];
@@ -55,20 +55,26 @@ export const factoriesSlice = createSlice({
 				localStorage.setItem("activeFactoryId", payload.id);
 			}
 		},
-		setActiveFactoryName(state, { payload }: PayloadAction<IFactory>) {
-			const found = state.factories.find((factory) => factory.id === payload.id);
-			if (found) {
-				found.name = payload.name;
+		updateFactoryName(state, { payload }: PayloadAction<string>) {
+			const { activeFactory } = state;
+			if (!activeFactory) {
+				return;
 			}
-			localStorage.setItem("factories", JSON.stringify(state.factories));
-			localStorage.setItem("activeFactoryId", JSON.stringify(payload.id));
+			const found = findFactoryById(state.factories, activeFactory.id);
+			if (found) {
+				// Make sure we update the factory item AND the activeFactory state value
+				found.name = activeFactory.name = payload;
+				localStorage.setItem("factories", JSON.stringify(state.factories));
+			}
 		},
 		addFactory(state, { payload }: PayloadAction<IFactory>) {
 			state.factories.push(payload);
 			localStorage.setItem("factories", JSON.stringify(state.factories));
 		},
 		deleteFactory(state, { payload }: PayloadAction<IFactory>) {
-			state.factories.splice(state.factories.indexOf(payload), 1);
+			const factoryId = payload.id;
+			const foundIndex = state.factories.findIndex(({ id }) => id === factoryId);
+			state.factories.splice(foundIndex, 1);
 			localStorage.removeItem("activeFactoryId");
 			localStorage.setItem("factories", JSON.stringify(state.factories));
 		},
@@ -83,14 +89,27 @@ export const factoriesSlice = createSlice({
 	},
 });
 
-export const { deleteFactory, setActiveFactory, setActiveFactoryName, loadFactories, addFactory } = factoriesSlice.actions;
+export const { deleteFactory, setActiveFactory, updateFactoryName, loadFactories, addFactory } = factoriesSlice.actions;
 
 export const { getFactories, getActiveFactory } = factoriesSlice.selectors;
+
+export function findFactoryById(factories: IFactory[], factoryId: string) {
+	return factories.find(({ id }) => id === factoryId);
+}
 
 export function loadFactoriesThunk(): AppThunk {
 	return function thunk(dispatch) {
 		dispatch(loadFactories());
 		dispatch(setActiveFactory());
+	};
+}
+
+export function loadFactoryInventoryThunk(factory?: IFactory): AppThunk {
+	return function thunk(dispatch, getState) {
+		factory ??= getActiveFactory(getState());
+		if (factory) {
+			dispatch(loadInventory(factory));
+		}
 	};
 }
 
@@ -102,9 +121,18 @@ export function deleteFactoryThunk(factory: IFactory): AppThunk {
 	};
 }
 
-export function addFactoryThunk(factory: IFactory): AppThunk {
+export function updateFactoryThunk(factoryName: string, isEdit = true): AppThunk {
 	return function thunk(dispatch) {
-		dispatch(addFactory(factory));
-		dispatch(setActiveFactory(factory));
+		if (isEdit) {
+			dispatch(updateFactoryName(factoryName));
+		}
+		else {
+			const id = uuid();
+			dispatch(addFactory({
+				id,
+				name: factoryName,
+			}));
+			dispatch(setActiveFactory(id));
+		}
 	};
 }

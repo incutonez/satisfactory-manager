@@ -21,3 +21,9 @@ export { default as IconEdit } from "@material-symbols/svg-400/outlined/edit.svg
 export { default as IconSave } from "@material-symbols/svg-400/outlined/save.svg?react";
 
 export { default as IconArrowForward } from "@material-symbols/svg-400/outlined/arrow_right_alt.svg?react";
+
+export { default as IconMenu } from "@material-symbols/svg-400/outlined/menu.svg?react";
+
+export { default as IconDownload } from "@material-symbols/svg-400/outlined/download.svg?react";
+
+export { default as IconImport } from "@material-symbols/svg-400/outlined/upload_file.svg?react";

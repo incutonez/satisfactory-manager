@@ -30,7 +30,7 @@ export function ViewRecipe({ show, setShow, onSave, record, recipeType, highligh
 		<BaseButton
 			text="Save"
 			icon={IconSave}
-			disabled={!recipeRecord}
+			isDisabled={!recipeRecord}
 			onClick={onClickSave}
 		/>
 	);
