@@ -1,10 +1,7 @@
 ﻿import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from "@tanstack/react-table";
-import {
-	deleteActiveItemRecipe, getActiveItem, getActiveItemRecipes,
-	updateActiveItemRecipe,
-} from "@/api/inventory.ts";
+import { deleteItemRecipe, getActiveItem, getActiveItemRecipes, updateItemRecipe } from "@/api/activeItem.ts";
 import { BaseButton } from "@/components/BaseButton.tsx";
 import { BaseDialog, IBaseDialog } from "@/components/BaseDialog.tsx";
 import { IconAdd, IconDelete, IconEdit, IconSave } from "@/components/Icons.tsx";
@@ -39,7 +36,6 @@ export function ViewInventoryItem({ show, setShow, onClickSave, recipeType }: IV
 		},
 	});
 
-	// TODOJEF: Add ability to add different factories and change name
 	useEffect(() => {
 		const recordId = record?.id;
 		if (recipeType) {
@@ -64,7 +60,7 @@ export function ViewInventoryItem({ show, setShow, onClickSave, recipeType }: IV
 						<BaseButton
 							icon={IconDelete}
 							title="Delete Recipe"
-							onClick={() => dispatch(deleteActiveItemRecipe({
+							onClick={() => dispatch(deleteItemRecipe({
 								recipeType,
 								record: info.row.original,
 							}))}
@@ -231,7 +227,7 @@ export function ViewInventoryItem({ show, setShow, onClickSave, recipeType }: IV
 	}
 
 	function onSaveRecipe(record: IInventoryRecipe) {
-		dispatch(updateActiveItemRecipe({
+		dispatch(updateItemRecipe({
 			record,
 			recipeType,
 		}));

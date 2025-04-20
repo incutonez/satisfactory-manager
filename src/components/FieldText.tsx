@@ -17,10 +17,10 @@ export interface IFieldText<T = string> extends ComponentProps<"input"> {
 	onInputChange?: (value: string) => void;
 }
 
-export function FieldText<T = string>({ value, autoFocus, onEnter, labelCls, labelPosition = "left", inputCls, inputWidth = "w-auto", type = "text", setter, label, onBlur = emptyFn, typeDelay = 250, onInputChange, placeholder }: IFieldText<T>) {
+export function FieldText<T = string>({ value, className = "", autoFocus, onEnter, labelCls, labelPosition = "left", inputCls, inputWidth = "w-auto", type = "text", setter, label, onBlur = emptyFn, typeDelay = 250, onInputChange, placeholder, ...props }: IFieldText<T>) {
 	let labelEl: ReactNode;
 	const typeDelayTimer = useRef<TSetTimeout>(undefined);
-	const cls = ["flex"];
+	const cls = ["flex", className];
 	inputCls = classNames("appearance-none rounded-md h-8 py-1 px-2 outline-none text-sm ring-1 ring-inset ring-offset-0 ring-gray-500 enabled:focus:ring-sky-600 bg-white text-gray-800 disabled:bg-gray-200 disabled:opacity-100 placeholder:text-gray-500", inputWidth);
 
 	if (labelPosition === "top") {
@@ -65,6 +65,7 @@ export function FieldText<T = string>({ value, autoFocus, onEnter, labelCls, lab
 				onChange={onChange}
 				onKeyDown={onKeyDown}
 				onBlur={onBlur}
+				{...props}
 			/>
 		</article>
 	);

@@ -1,6 +1,6 @@
 # Satisfactory Production Manager
 
-I wanted a tool that could help me keep track of what I'm producing and consuming in my factory.  I know things like [Satisfactory Calculator](https://satisfactory-calculator.com/en/planners/production) exist, but I wanted to try and make my own in React.
+I wanted a tool that could help me keep track of what I'm producing and consuming in my factory for [Satisfactory](https://store.steampowered.com/app/526870/Satisfactory/).  I know things like [Satisfactory Calculator](https://satisfactory-calculator.com/en/planners/production) exist, but I wanted to try and make my own in React.
 
 ## Data
 

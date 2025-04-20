@@ -1,4 +1,5 @@
 ﻿import justCapitalize from "just-capitalize";
+import MimeTypes from "mime-types";
 import { IInventoryRecipe, IRecipeItem, TItemKey } from "@/types.ts";
 
 const CapitalizeWordBoundary = /(?=[A-Z])/;
@@ -46,4 +47,19 @@ export function calculateAmountDisplays(recipes: IRecipeItem[], overclock: numbe
 export function capitalizeFirstLetters(value: string) {
 	const splits = value.split(CapitalizeWordBoundary);
 	return splits.map((word) => justCapitalize(word)).join(" ");
+}
+
+export function downloadFile(blob: Blob, name = "download", extension = MimeTypes.extension(blob.type)) {
+	if (!extension) {
+		return;
+	}
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.style.display = "none";
+	a.href = url;
+	// the filename you want
+	a.download = `${name}.${extension}`;
+	document.body.appendChild(a);
+	a.click();
+	URL.revokeObjectURL(url);
 }

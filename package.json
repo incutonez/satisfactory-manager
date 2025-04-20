@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "generate:items": "npx tsx src/generator.ts",
     "update:deps": "node ./updateDependencies.js",
-    "update:versions": "node ./updateVersions.js"
+    "update:versions": "node ./updateVersions.js",
+    "prepare": "husky"
   },
   "dependencies": {
     "@material-symbols/svg-400": "latest",
@@ -22,6 +23,7 @@
     "just-capitalize": "^3.2.0",
     "just-clone": "^6.2.0",
     "just-safe-get": "^4.2.0",
+    "mime-types": "^3.0.1",
     "pluralize": "^8.0.0",
     "react": "^19.0.0",
     "react-aria-components": "^1.8.0",
@@ -39,6 +41,7 @@
     "@semantic-release/git": "^10.0.1",
     "@stylistic/eslint-plugin-ts": "latest",
     "@tailwindcss/vite": "latest",
+    "@types/mime-types": "^2.1.4",
     "@types/node": "latest",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",

@@ -1,9 +1,11 @@
-﻿import { ComponentProps, ElementType, isValidElement, ReactNode } from "react";
+﻿import { ElementType, isValidElement, ReactNode, RefObject, useEffect, useRef } from "react";
+import { Button as AriaButton, ButtonProps as IAriaButton } from "react-aria-components";
 import classNames from "classnames";
 import { BaseIcon } from "@/components/BaseIcon.tsx";
 import { IconLoading } from "@/components/IconLoading.tsx";
 
-export type IBaseButton<T extends ElementType = "button"> = ComponentProps<T> & {
+export interface IBaseButton extends IAriaButton {
+	children?: ReactNode;
 	text?: string | ReactNode;
 	icon?: ElementType;
 	iconCls?: string;
@@ -13,11 +15,14 @@ export type IBaseButton<T extends ElementType = "button"> = ComponentProps<T> & 
 	hidden?: boolean;
 	color?: string;
 	loading?: boolean;
+	title?: string;
+	ref?: RefObject<HTMLButtonElement>;
 }
 
-export function BaseButton({ text, color = "bg-slate-300 enabled:hover:bg-slate-400", loading = false, icon, iconSlot, hidden = false, size = "h-8", iconCls = "", className, iconAfter = false, ...attrs }: IBaseButton) {
+export function BaseButton({ children, ref, title, text, color = "bg-slate-300 enabled:hover:bg-slate-400", loading = false, icon, iconSlot, hidden = false, size = "h-8", iconCls = "", className, iconAfter = false, ...attrs }: IBaseButton) {
 	let textNode: ReactNode;
 	let buttonIcon: ReactNode;
+	const internalRef = useRef<HTMLButtonElement>(null);
 	if (loading) {
 		buttonIcon = <IconLoading />;
 	}
@@ -33,25 +38,40 @@ export function BaseButton({ text, color = "bg-slate-300 enabled:hover:bg-slate-
 		);
 	}
 	if (isValidElement(text)) {
-		textNode = text;
+		children = text;
 	}
 	else if (text) {
-		textNode = text &&
+		children = text &&
             <span>
             	{text}
             </span>;
 	}
 	const hiddenCls = hidden ? "hidden" : "";
-	const disabledCls = attrs.disabled ? "opacity-70 cursor-not-allowed" : "cursor-pointer";
+	const disabledCls = attrs.isDisabled ? "opacity-70 cursor-not-allowed" : "cursor-pointer";
 	const buttonCls = classNames("flex items-center rounded space-x-1", color, hiddenCls, size, disabledCls, textNode ? "px-2" : "px-1", className);
+
+	function onRef(el: HTMLButtonElement) {
+		if (ref) {
+			ref.current = el;
+		}
+		internalRef.current = el;
+	}
+
+	useEffect(() => {
+		if (title && internalRef.current) {
+			internalRef.current.title = title;
+		}
+	}, [internalRef, title]);
+
 	return (
-		<button
+		<AriaButton
+			ref={onRef}
 			className={buttonCls}
 			{...attrs}
 		>
 			{!iconAfter && buttonIcon}
-			{textNode}
+			{children}
 			{iconAfter && buttonIcon}
-		</button>
+		</AriaButton>
 	);
 }
