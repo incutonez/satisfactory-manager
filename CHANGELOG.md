@@ -1,3 +1,9 @@
+## [1.1.2](https://github.com/incutonez/satisfactory-manager/compare/v1.1.1...v1.1.2) (2025-04-20)
+
+### Bug Fixes
+
+* Adding Google Meta Tag ([#9](https://github.com/incutonez/satisfactory-manager/issues/9)) ([1b8a1af](https://github.com/incutonez/satisfactory-manager/commit/1b8a1afb621926043a2bd05911ac22f7abe4421a))
+
 ## [1.1.1](https://github.com/incutonez/satisfactory-manager/compare/v1.1.0...v1.1.1) (2025-04-20)
 
 ### Bug Fixes
