@@ -71,3 +71,10 @@ export interface IRouteViewItem {
 export interface IRouteViewItemRecipe extends IRouteViewItem {
 	recipeId: string;
 }
+
+export interface ICalculateAmountDisplays {
+	items: IRecipeItem[];
+	overclock: number;
+	somersloop: number;
+	machineCount: number;
+}

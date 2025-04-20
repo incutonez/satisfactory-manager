@@ -21,10 +21,15 @@ export const activeItemSlice = createSlice({
 			if (!activeItem) {
 				return;
 			}
-			const { id, overclockValue, machineCount, items } = payload;
+			const { id, overclockValue, machineCount, somersloopValue, items } = payload;
 			const { recipes } = activeItem;
 			const foundIndex = recipes.findIndex((item) => item.id === id) ?? -1;
-			calculateAmountDisplays(items, overclockValue, machineCount);
+			calculateAmountDisplays({
+				items,
+				machineCount,
+				overclock: overclockValue,
+				somersloop: somersloopValue,
+			});
 			if (foundIndex >= 0) {
 				recipes[foundIndex] = payload;
 			}

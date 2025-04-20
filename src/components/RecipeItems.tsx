@@ -3,7 +3,7 @@ import { getInventoryItem } from "@/api/inventory.ts";
 import { ItemImage } from "@/components/CellItem.tsx";
 import { useAppSelector } from "@/store.ts";
 import { IRecipeItem, TItemKey, TRecipeType } from "@/types.ts";
-import { pluralize } from "@/utils/common.ts";
+import { calculateSomersloop, pluralize } from "@/utils/common.ts";
 
 export interface IRecipeItems {
 	items?: IRecipeItem[];
@@ -17,13 +17,13 @@ export interface IRecipeItems {
 export interface RecipeItemComponent {
 	item: IRecipeItem;
 	highlightItem?: TItemKey;
-	overclock: number;
-	somersloop: number;
-	machineCount: number;
+	multiplier: number;
 }
 
 export function RecipeItems({ items = [], overclock, recipeType, highlightItem, somersloop, machineCount }: IRecipeItems) {
 	overclock /= 100;
+	somersloop = calculateSomersloop(somersloop);
+	const multiplier = overclock * machineCount * somersloop;
 	const itemNodes = items.map((item) => {
 		if (item.recipeType !== recipeType) {
 			return;
@@ -33,9 +33,7 @@ export function RecipeItems({ items = [], overclock, recipeType, highlightItem, 
 				key={`${item.recipeType}_${item.itemId}`}
 				item={item}
 				highlightItem={highlightItem}
-				overclock={overclock}
-				somersloop={somersloop}
-				machineCount={machineCount}
+				multiplier={multiplier}
 			/>
 		);
 	});
@@ -48,14 +46,13 @@ export function RecipeItems({ items = [], overclock, recipeType, highlightItem, 
 	);
 }
 
-// TODOJEF: Use somersloop value
-export function RecipeItem({ item, overclock, machineCount, highlightItem }: RecipeItemComponent) {
+export function RecipeItem({ item, multiplier, highlightItem }: RecipeItemComponent) {
 	const { itemId } = item;
 	const inventoryItem = useAppSelector((state) => getInventoryItem(state, itemId));
 	if (!inventoryItem) {
 		return;
 	}
-	const amount = item.amountPerMinute * overclock * machineCount;
+	const amount = item.amountPerMinute * multiplier;
 	const cls = classNames("rounded-md", highlightItem === itemId ? "bg-yellow-200" : "");
 	return (
 		<tr
