@@ -4,7 +4,4 @@ import { ViewInventoryItems } from "@/views/ViewInventoryItems.tsx";
 
 export const Route = createFileRoute(RouteViewItems)({
 	component: ViewInventoryItems,
-	loader() {
-
-	},
 });

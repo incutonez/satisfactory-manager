@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
 	return {
 		plugins: [TanStackRouterVite({
 			target: "react",
-			autoCodeSplitting: true,
+			autoCodeSplitting: false,
 		}), react(), svgLoader(), tailwindcss()],
 		base: mode === "GitHubPages" ? "/satisfactory-manager/" : "",
 		resolve: {
