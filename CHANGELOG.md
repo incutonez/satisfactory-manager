@@ -1,3 +1,9 @@
+## [1.1.0](https://github.com/incutonez/satisfactory-manager/compare/v1.0.0...v1.1.0) (2025-04-20)
+
+### Features
+
+* Additional Cleanup ([#7](https://github.com/incutonez/satisfactory-manager/issues/7)) ([ac63c90](https://github.com/incutonez/satisfactory-manager/commit/ac63c90fb221932c86b99d0b1ba88d718d1f6c06))
+
 ## 1.0.0 (2025-04-18)
 
 ### Features
