@@ -6,9 +6,9 @@ import {
 	Label as BaseLabel,
 	ListBox as BaseListBox,
 	ListBoxItem as BaseListBoxItem,
-	Popover as BasePopover,
 } from "react-aria-components";
 import classNames from "classnames";
+import { BasePopover } from "@/components/BasePopover.tsx";
 import { IconArrowDown } from "@/components/Icons.tsx";
 import { getData } from "@/utils/common.ts";
 
@@ -57,18 +57,18 @@ export function ComboBox<TOption extends object>({ value, inputCls, setValue, se
 
 	useEffect(() => {
 		if (setSelection) {
-			setSelection(options.find((item) => item[valueField] === value));
+			setSelection(options.find((option) => option[valueField] === value));
 		}
-	}, [options, valueField, setSelection, value]);
+	}, [options, valueField, value, setSelection]);
 
 	return (
 		<BaseComboBox
-			{...props}
 			className="h-8 flex items-center"
 			items={options}
 			menuTrigger={menuTrigger}
 			selectedKey={value}
 			onSelectionChange={onSelectionChange}
+			{...props}
 		>
 			{labelEl}
 			<BaseInput className={inputCls} />
@@ -77,8 +77,7 @@ export function ComboBox<TOption extends object>({ value, inputCls, setValue, se
 			</BaseButton>
 			<BasePopover
 				maxHeight={listHeight}
-				offset={2}
-				className="rounded-md w-(--trigger-width) border overflow-auto bg-white shadow-lg"
+				className="w-(--trigger-width)"
 			>
 				<BaseListBox>
 					{children}

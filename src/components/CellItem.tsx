@@ -21,7 +21,7 @@ export function ItemName({ cell }: IItemName) {
 }
 
 export function ItemImage({ itemId }: { itemId: TItemKey }) {
-	const record = useAppSelector(getInventoryItem(itemId));
+	const record = useAppSelector((state) => getInventoryItem(state, itemId));
 	if (!record) {
 		return;
 	}
@@ -35,7 +35,6 @@ export function ItemImage({ itemId }: { itemId: TItemKey }) {
 }
 
 export function RecipeMachine({ record }: { record?: IRecipe }) {
-	console.log(record);
 	if (!record) {
 		return;
 	}

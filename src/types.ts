@@ -62,3 +62,12 @@ export interface IMachine {
 	name: string;
 	image: string;
 }
+
+export interface IRouteViewItem {
+	itemId: TItemKey;
+	recipeType: TRecipeType;
+}
+
+export interface IRouteViewItemRecipe extends IRouteViewItem {
+	recipeId: string;
+}

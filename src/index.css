@@ -30,3 +30,9 @@ input::-webkit-inner-spin-button {
 input[type=number] {
     -moz-appearance: textfield;
 }
+
+@layer components {
+    .link {
+        @apply underline text-blue-700;
+    }
+}
