@@ -63,7 +63,7 @@ export function ComboBox<TOption extends object>({ value, inputCls, setValue, se
 
 	return (
 		<BaseComboBox
-			className="h-8 flex items-center"
+			className="h-8 flex items-center overflow-auto"
 			items={options}
 			menuTrigger={menuTrigger}
 			selectedKey={value}

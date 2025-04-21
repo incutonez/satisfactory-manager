@@ -1,6 +1,6 @@
-﻿import { Dispatch, SetStateAction, useEffect, useState } from "react";
+﻿import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { getActiveItemRecipe, updateItemRecipe } from "@/api/activeItem.ts";
+import { getActiveItemRecipe, saveItemThunk } from "@/api/activeItem.ts";
 import { recipes } from "@/api/recipes.ts";
 import { BaseButton, IBaseButton } from "@/components/BaseButton.tsx";
 import { BaseDialog, IBaseDialog } from "@/components/BaseDialog.tsx";
@@ -13,7 +13,7 @@ import { RecipeItems } from "@/components/RecipeItems.tsx";
 import { RouteViewItem } from "@/routes.ts";
 import { useAppDispatch, useAppSelector } from "@/store.ts";
 import { IRecipe, TItemKey, TRecipeType } from "@/types.ts";
-import { clone, uuid } from "@/utils/common.ts";
+import { calculateSomersloop } from "@/utils/common.ts";
 
 export interface IViewRecipe extends IBaseDialog {
 	recipeId?: string;
@@ -27,6 +27,7 @@ export interface IViewRecipeSave extends IBaseButton {
 
 export interface IViewRecipeItems {
 	record?: IRecipe;
+	recipeId?: string;
 	itemId?: TItemKey;
 	overclock: number;
 	setOverclock: Dispatch<SetStateAction<number>>;
@@ -47,7 +48,8 @@ export function ViewRecipeSave({ record, ...props }: IViewRecipeSave) {
 	);
 }
 
-export function ViewRecipeItems({ record, overclock, setOverclock, somersloop, setSomersloop, machineCount, setMachineCount, itemId }: IViewRecipeItems) {
+export function ViewRecipeItems({ record, recipeId, overclock, setOverclock, somersloop, setSomersloop, machineCount, setMachineCount, itemId }: IViewRecipeItems) {
+	const overclockValue = useMemo(() => overclock / 100, [overclock]);
 	if (!record) {
 		return;
 	}
@@ -96,20 +98,18 @@ export function ViewRecipeItems({ record, overclock, setOverclock, somersloop, s
 			<section className="flex items-center justify-center space-x-4 flex-1">
 				<RecipeItems
 					items={record.items}
+					recipeId={recipeId}
 					recipeType="consumes"
 					highlightItem={itemId}
-					machineCount={machineCount}
-					overclock={overclock}
-					somersloop={somersloop}
+					multiplier={overclockValue * machineCount}
 				/>
 				<RecipeMachine record={record} />
 				<RecipeItems
 					items={record.items}
+					recipeId={recipeId}
 					recipeType="produces"
 					highlightItem={itemId}
-					machineCount={machineCount}
-					overclock={overclock}
-					somersloop={somersloop}
+					multiplier={overclockValue * machineCount * calculateSomersloop(somersloop, "produces")}
 				/>
 			</section>
 		</section>
@@ -151,18 +151,12 @@ export function ViewRecipe({ recipeId, recipeType, itemId, show }: IViewRecipe) 
 
 	function onClickSave() {
 		if (recipeRecord) {
-			dispatch(updateItemRecipe({
+			dispatch(saveItemThunk({
 				machineCount,
-				recipeId: recipeRecord.id,
-				recipeName: recipeRecord.name,
-				cyclesPerMinute: recipeRecord.cyclesPerMinute,
-				isAlternate: recipeRecord.isAlternate,
-				items: clone(recipeRecord.items),
-				producedIn: clone(recipeRecord.producedIn),
-				productionCycleTime: recipeRecord.productionCycleTime,
-				id: activeItemRecipe?.id || uuid(),
-				overclockValue: overclock,
-				somersloopValue: somersloop,
+				recipeRecord,
+				activeItemRecipe,
+				overclock,
+				somersloop,
 			}));
 			viewItem();
 		}
@@ -210,6 +204,7 @@ export function ViewRecipe({ recipeId, recipeType, itemId, show }: IViewRecipe) 
 				/>
 				<ViewRecipeItems
 					itemId={itemId}
+					recipeId={recipeId}
 					record={recipeRecord}
 					overclock={overclock}
 					setOverclock={setOverclock}

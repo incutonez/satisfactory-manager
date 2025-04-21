@@ -78,7 +78,21 @@ export function ViewInventoryItems() {
 		header: "Total",
 		cell: (info) => info.getValue(),
 		meta: {
-			cellCls: "text-right",
+			cellCls(cell) {
+				const cls = ["text-right"];
+				const value = cell.getValue<number>();
+				const hasValue = cell.row.original.consumingTotal;
+				if (value < 0) {
+					cls.push("bg-negative");
+				}
+				else if (value > 0) {
+					cls.push("bg-positive");
+				}
+				else if (hasValue) {
+					cls.push("bg-zero");
+				}
+				return cls.join(" ");
+			},
 			onClickCell(cell) {
 				navigate({
 					to: RouteViewItem,

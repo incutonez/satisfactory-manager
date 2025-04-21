@@ -1,11 +1,12 @@
 ﻿import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { getInventoryItem } from "@/api/inventory.ts";
+import { getInventoryItem, updateRecipesThunk } from "@/api/inventory.ts";
 import { AppThunk } from "@/store.ts";
-import { IInventoryItem, IInventoryRecipe } from "@/types.ts";
-import { calculateAmountDisplays, sumRecipes } from "@/utils/common.ts";
+import { IInventoryItem, IInventoryRecipe, IRecipe } from "@/types.ts";
+import { calculateAmountDisplays, clone, sumRecipes, uuid } from "@/utils/common.ts";
 
 export interface IActiveItemState {
 	activeItem?: IInventoryItem;
+	activeItemRecipe?: IInventoryRecipe;
 }
 
 const initialState: IActiveItemState = {};
@@ -76,5 +77,32 @@ export function loadItemThunk(itemId: string): AppThunk {
 	return function thunk(dispatch, getState) {
 		const item = getInventoryItem(getState(), itemId);
 		dispatch(setActiveItem(item));
+	};
+}
+
+interface ISaveItemThunk {
+	recipeRecord: IRecipe;
+	activeItemRecipe?: IInventoryRecipe;
+	machineCount: number;
+	somersloop: number;
+	overclock: number;
+}
+
+export function saveItemThunk({ recipeRecord, activeItemRecipe, machineCount, overclock, somersloop }: ISaveItemThunk): AppThunk {
+	return function thunk(dispatch, getState) {
+		dispatch(updateItemRecipe({
+			machineCount,
+			recipeId: recipeRecord.id,
+			recipeName: recipeRecord.name,
+			cyclesPerMinute: recipeRecord.cyclesPerMinute,
+			isAlternate: recipeRecord.isAlternate,
+			items: clone(recipeRecord.items),
+			producedIn: clone(recipeRecord.producedIn),
+			productionCycleTime: recipeRecord.productionCycleTime,
+			id: activeItemRecipe?.id || uuid(),
+			overclockValue: overclock,
+			somersloopValue: somersloop,
+		}));
+		dispatch(updateRecipesThunk(getActiveItem(getState())!));
 	};
 }

@@ -37,7 +37,7 @@ export function sumRecipes(value: IInventoryRecipe[], id: TItemKey) {
 }
 
 export function calculateSomersloop(somersloop: number, recipeType: TRecipeType) {
-	return recipeType === "produces" ? 1 + (somersloop / 4) : 1;
+	return recipeType === "produces" ? 1 + somersloop : 1;
 }
 
 export function calculateAmountDisplays({ items, overclock, somersloop, machineCount }: ICalculateAmountDisplays) {

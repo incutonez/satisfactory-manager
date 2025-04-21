@@ -2,7 +2,7 @@
 import { Outlet, useNavigate, useParams } from "@tanstack/react-router";
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from "@tanstack/react-table";
 import { deleteItemRecipe, getActiveItem, getActiveItemRecipes } from "@/api/activeItem.ts";
-import { updateRecipesThunk } from "@/api/inventory.ts";
+import { resetDraftInventory, saveInventoryThunk } from "@/api/inventory.ts";
 import { BaseButton } from "@/components/BaseButton.tsx";
 import { BaseDialog, IBaseDialog } from "@/components/BaseDialog.tsx";
 import { IconAdd, IconDelete, IconEdit, IconSave } from "@/components/Icons.tsx";
@@ -53,6 +53,7 @@ export function ViewInventoryItem({ show }: IViewItem) {
 
 	function setShow(show: boolean) {
 		if (!show) {
+			dispatch(resetDraftInventory());
 			viewInventory();
 		}
 	}
@@ -65,10 +66,9 @@ export function ViewInventoryItem({ show }: IViewItem) {
 
 	function onClickSave() {
 		if (record) {
-			dispatch(updateRecipesThunk(record));
+			dispatch(saveInventoryThunk());
 			viewInventory();
 		}
-		// Navigate back
 	}
 
 	useEffect(() => {
@@ -195,13 +195,16 @@ export function ViewInventoryItem({ show }: IViewItem) {
 							return "";
 						}
 						const total = record.producingTotal - record.consumingTotal;
-						if (total === 0) {
-							return "";
+						if (total > 0) {
+							return "bg-positive";
 						}
 						else if (total < 0) {
-							return "!bg-red-200";
+							return "bg-negative";
 						}
-						return "!bg-green-200";
+						else if (record.producingTotal) {
+							return "bg-zero";
+						}
+						return "bg-white";
 					},
 				},
 				footer() {
