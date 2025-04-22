@@ -116,3 +116,10 @@ export function saveItemThunk({ recipeRecord, nodeType, machineId, activeItemRec
 		dispatch(updateRecipesThunk(getActiveItem(getState())!));
 	};
 }
+
+export function deleteItemThunk(item: IInventoryRecipe): AppThunk {
+	return function thunk(dispatch, getState) {
+		dispatch(deleteItemRecipe(item));
+		dispatch(updateRecipesThunk(getActiveItem(getState())!));
+	};
+}

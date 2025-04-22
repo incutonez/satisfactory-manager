@@ -1,7 +1,7 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import { Outlet, useNavigate, useParams } from "@tanstack/react-router";
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from "@tanstack/react-table";
-import { deleteItemRecipe, getActiveItem, getActiveItemRecipes } from "@/api/activeItem.ts";
+import { deleteItemThunk, getActiveItem, getActiveItemRecipes } from "@/api/activeItem.ts";
 import { resetDraftInventory, saveInventoryThunk } from "@/api/inventory.ts";
 import { BaseButton } from "@/components/BaseButton.tsx";
 import { BaseDialog, IBaseDialog } from "@/components/BaseDialog.tsx";
@@ -97,7 +97,7 @@ export function ViewInventoryItem({ show }: IViewItem) {
 						<BaseButton
 							icon={IconDelete}
 							title="Delete Recipe"
-							onClick={() => dispatch(deleteItemRecipe(info.row.original))}
+							onClick={() => dispatch(deleteItemThunk(info.row.original))}
 						/>
 						<BaseButton
 							icon={IconEdit}
