@@ -3,7 +3,7 @@ import { getInventoryItem } from "@/api/inventory.ts";
 import { machines } from "@/api/machines.ts";
 import { IconArrowForward } from "@/components/Icons.tsx";
 import { useAppSelector } from "@/store.ts";
-import { IInventoryItem, IRecipe, TItemKey } from "@/types.ts";
+import { IInventoryItem, TItemKey } from "@/types.ts";
 
 interface IItemName {
 	cell: Cell<IInventoryItem, unknown>;
@@ -34,18 +34,23 @@ export function ItemImage({ itemId }: { itemId: TItemKey }) {
 	);
 }
 
-export function RecipeMachine({ record }: { record?: IRecipe }) {
-	if (!record) {
+export function RecipeMachine({ machineId, showLeftArrow }: { machineId?: string, showLeftArrow: boolean }) {
+	if (!machineId) {
 		return;
 	}
-	const [machineId] = record.producedIn;
+	let leftArrowNode;
 	const found = machines.find((machine) => machine.id === machineId);
 	if (!found) {
 		return;
 	}
+	if (showLeftArrow) {
+		leftArrowNode = (
+			<IconArrowForward className="size-10" />
+		);
+	}
 	return (
 		<>
-			<IconArrowForward className="size-10" />
+			{leftArrowNode}
 			<img
 				className="size-32"
 				alt={found.name}

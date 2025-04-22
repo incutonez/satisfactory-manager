@@ -27,3 +27,9 @@ export { default as IconMenu } from "@material-symbols/svg-400/outlined/menu.svg
 export { default as IconDownload } from "@material-symbols/svg-400/outlined/download.svg?react";
 
 export { default as IconImport } from "@material-symbols/svg-400/outlined/upload_file.svg?react";
+
+export { default as IconArrowDropDown } from "@material-symbols/svg-400/outlined/arrow_drop_down.svg?react";
+
+export { default as IconCheckCircle } from "@material-symbols/svg-400/outlined/check_circle.svg?react";
+
+export { default as IconError } from "@material-symbols/svg-400/outlined/error.svg?react";

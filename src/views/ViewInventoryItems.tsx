@@ -19,14 +19,14 @@ import {
 import { BaseButton } from "@/components/BaseButton.tsx";
 import { BaseDropdown } from "@/components/BaseDropdown.tsx";
 import { BaseMenuItem } from "@/components/BaseMenuItem.tsx";
-import { ItemName } from "@/components/CellItem.tsx";
-import { ComboBox, TComboBoxValue } from "@/components/ComboBox.tsx";
+import { ComboBox } from "@/components/ComboBox.tsx";
 import { FieldText } from "@/components/FieldText.tsx";
 import { IconAdd, IconDelete, IconDownload, IconEdit, IconImport, IconRevert } from "@/components/Icons.tsx";
 import { TableData } from "@/components/TableData.tsx";
 import { RouteViewItem } from "@/routes.ts";
 import { useAppDispatch, useAppSelector } from "@/store.ts";
 import { IInventoryItem } from "@/types.ts";
+import { ItemName } from "@/views/shared/CellItem.tsx";
 import { ViewFactory } from "@/views/ViewFactory.tsx";
 import { ViewImport } from "@/views/ViewImport.tsx";
 
@@ -78,7 +78,21 @@ export function ViewInventoryItems() {
 		header: "Total",
 		cell: (info) => info.getValue(),
 		meta: {
-			cellCls: "text-right",
+			cellCls(cell) {
+				const cls = ["text-right"];
+				const value = cell.getValue<number>();
+				const hasValue = cell.row.original.consumingTotal;
+				if (value < 0) {
+					cls.push("bg-negative");
+				}
+				else if (value > 0) {
+					cls.push("bg-positive");
+				}
+				else if (hasValue) {
+					cls.push("bg-zero");
+				}
+				return cls.join(" ");
+			},
 			onClickCell(cell) {
 				navigate({
 					to: RouteViewItem,
@@ -133,8 +147,8 @@ export function ViewInventoryItems() {
 		setShowImportDialog(true);
 	}
 
-	function onSetFactory(factoryId?: TComboBoxValue) {
-		dispatch(setActiveFactory(factoryId as string));
+	function onSetFactory(factoryId?: string) {
+		dispatch(setActiveFactory(factoryId));
 	}
 
 	function onClickEditFactory() {

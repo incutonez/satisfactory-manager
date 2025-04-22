@@ -1,11 +1,15 @@
 ﻿import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { getInventoryItem } from "@/api/inventory.ts";
+import { TNodeType } from "@/api/data.ts";
+import { getInventoryItem, updateRecipesThunk } from "@/api/inventory.ts";
+import { TMachine } from "@/api/machines.ts";
+import { TRecipe } from "@/api/recipes.ts";
 import { AppThunk } from "@/store.ts";
-import { IInventoryItem, IInventoryRecipe } from "@/types.ts";
-import { calculateAmountDisplays, sumRecipes } from "@/utils/common.ts";
+import { IInventoryItem, IInventoryRecipe, IRecipe } from "@/types.ts";
+import { calculateAmountDisplays, clone, sumRecipes, uuid } from "@/utils/common.ts";
 
 export interface IActiveItemState {
 	activeItem?: IInventoryItem;
+	activeItemRecipe?: IInventoryRecipe;
 }
 
 const initialState: IActiveItemState = {};
@@ -21,12 +25,13 @@ export const activeItemSlice = createSlice({
 			if (!activeItem) {
 				return;
 			}
-			const { id, overclockValue, machineCount, somersloopValue, items } = payload;
+			const { id, overclockValue, machineCount, somersloopValue, items, nodeTypeMultiplier } = payload;
 			const { recipes } = activeItem;
 			const foundIndex = recipes.findIndex((item) => item.id === id) ?? -1;
 			calculateAmountDisplays({
 				items,
 				machineCount,
+				nodeTypeMultiplier,
 				overclock: overclockValue,
 				somersloop: somersloopValue,
 			});
@@ -76,5 +81,38 @@ export function loadItemThunk(itemId: string): AppThunk {
 	return function thunk(dispatch, getState) {
 		const item = getInventoryItem(getState(), itemId);
 		dispatch(setActiveItem(item));
+	};
+}
+
+interface ISaveItemThunk {
+	recipeRecord: IRecipe;
+	activeItemRecipe?: IInventoryRecipe;
+	machineCount: number;
+	somersloop: number;
+	overclock: number;
+	nodeTypeMultiplier: number;
+	machineId: TMachine;
+	nodeType?: TNodeType;
+}
+
+export function saveItemThunk({ recipeRecord, nodeType, machineId, activeItemRecipe, machineCount, overclock, somersloop, nodeTypeMultiplier }: ISaveItemThunk): AppThunk {
+	return function thunk(dispatch, getState) {
+		dispatch(updateItemRecipe({
+			nodeTypeMultiplier,
+			machineCount,
+			nodeType,
+			recipeId: recipeRecord.id as TRecipe,
+			recipeName: recipeRecord.name,
+			cyclesPerMinute: recipeRecord.cyclesPerMinute,
+			isAlternate: recipeRecord.isAlternate,
+			items: clone(recipeRecord.items),
+			isRaw: recipeRecord.isRaw,
+			producedIn: machineId,
+			productionCycleTime: recipeRecord.productionCycleTime,
+			id: activeItemRecipe?.id || uuid(),
+			overclockValue: overclock,
+			somersloopValue: somersloop,
+		}));
+		dispatch(updateRecipesThunk(getActiveItem(getState())!));
 	};
 }

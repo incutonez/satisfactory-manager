@@ -16,10 +16,11 @@ export interface IBaseButton extends IAriaButton {
 	color?: string;
 	loading?: boolean;
 	title?: string;
+	plain?: boolean;
 	ref?: RefObject<HTMLButtonElement>;
 }
 
-export function BaseButton({ children, ref, title, text, color = "bg-slate-300 enabled:hover:bg-slate-400", loading = false, icon, iconSlot, hidden = false, size = "h-8", iconCls = "", className, iconAfter = false, ...attrs }: IBaseButton) {
+export function BaseButton({ children, plain, ref, title, text, color = "bg-slate-300 enabled:hover:bg-slate-400", loading = false, icon, iconSlot, hidden = false, size = "h-8", iconCls = "", className, iconAfter = false, ...attrs }: IBaseButton) {
 	let textNode: ReactNode;
 	let buttonIcon: ReactNode;
 	const internalRef = useRef<HTMLButtonElement>(null);
@@ -45,6 +46,9 @@ export function BaseButton({ children, ref, title, text, color = "bg-slate-300 e
             <span>
             	{text}
             </span>;
+	}
+	if (plain) {
+		color = "";
 	}
 	const hiddenCls = hidden ? "hidden" : "";
 	const disabledCls = attrs.isDisabled ? "opacity-70 cursor-not-allowed" : "cursor-pointer";

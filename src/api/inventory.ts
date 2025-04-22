@@ -10,11 +10,18 @@ export const inventoryItems = defaultInventory as IInventoryItem[];
 export interface IState {
 	inventory: IInventoryItem[];
 	inventoryId: string;
+	/**
+	 * We have a draft of the inventory because we need to be able to calculate recipe values when we update an
+	 * active item's recipe... so we can show the tooltip that has a table of the current calculations.  inventoryDraft
+	 * then either gets reset to inventory upon cancel in ViewInventoryItem or if saved, inventory becomes inventoryDraft
+	 */
+	inventoryDraft: IInventoryItem[];
 }
 
 const initialState: IState = {
 	inventory: [],
 	inventoryId: "",
+	inventoryDraft: [],
 };
 
 export const inventorySlice = createSlice({
@@ -23,7 +30,7 @@ export const inventorySlice = createSlice({
 	reducers: {
 		deleteRecipe(state, { payload }: PayloadAction<IInventoryRecipe>) {
 			payload.items.forEach(({ itemId }) => {
-				const found = state.inventory.find((record) => record.id === itemId);
+				const found = state.inventoryDraft.find((record) => record.id === itemId);
 				if (found) {
 					const foundIndex = found.recipes.findIndex((record) => record.id === payload.id);
 					if (foundIndex >= 0) {
@@ -34,7 +41,7 @@ export const inventorySlice = createSlice({
 		},
 		updateRecipe(state, { payload }: PayloadAction<IInventoryRecipe>) {
 			payload.items.forEach(({ itemId }) => {
-				const found = state.inventory.find((record) => record.id === itemId);
+				const found = state.inventoryDraft.find((record) => record.id === itemId);
 				if (found) {
 					const { recipes } = found;
 					const foundIndex = recipes.findIndex((record) => record.id === payload.id);
@@ -51,7 +58,7 @@ export const inventorySlice = createSlice({
 				if (processedIds.find((id) => id === itemId)) {
 					continue;
 				}
-				const found = state.inventory.find((record) => record.id === itemId);
+				const found = state.inventoryDraft.find((record) => record.id === itemId);
 				processedIds.push(itemId);
 				if (found) {
 					found.recipes.push(payload);
@@ -62,13 +69,8 @@ export const inventorySlice = createSlice({
 			const inventoryId = `factory_${payload.id}_inventory`;
 			const data = localStorage.getItem(inventoryId);
 			const inventory: IInventoryItem[] = data ? JSON.parse(data) : clone(inventoryItems);
-			inventory.forEach((item) => {
-				const { produces, consumes } = sumRecipes(item.recipes, item.id);
-				item.producingTotal = produces;
-				item.consumingTotal = consumes;
-				item.total = item.producingTotal - item.consumingTotal;
-			});
 			state.inventory = inventory;
+			state.inventoryDraft = inventory;
 			state.inventoryId = inventoryId;
 		},
 		saveInventory(state, { payload }: PayloadAction<boolean>) {
@@ -77,8 +79,19 @@ export const inventorySlice = createSlice({
 				localStorage.removeItem(state.inventoryId);
 			}
 			else {
-				localStorage.setItem(state.inventoryId, JSON.stringify(state.inventory));
+				localStorage.setItem(state.inventoryId, JSON.stringify(state.inventoryDraft));
 			}
+		},
+		updateDraftInventory(state) {
+			state.inventoryDraft.forEach((item) => {
+				const { produces, consumes } = sumRecipes(item.recipes, item.id);
+				item.producingTotal = produces;
+				item.consumingTotal = consumes;
+				item.total = item.producingTotal - item.consumingTotal;
+			});
+		},
+		resetDraftInventory(state) {
+			state.inventoryDraft = state.inventory;
 		},
 		deleteInventory(state) {
 			localStorage.removeItem(state.inventoryId);
@@ -91,15 +104,18 @@ export const inventorySlice = createSlice({
 		getInventory(state) {
 			return state.inventory;
 		},
+		getInventoryDraft(state) {
+			return state.inventoryDraft;
+		},
 		getInventoryItem(state, itemId: string) {
-			return findInventoryItemById(state.inventory, itemId);
+			return findInventoryItemById(state.inventoryDraft, itemId);
 		},
 	},
 });
 
-export const { importInventory, deleteInventory, addRecipe, updateRecipe, deleteRecipe, loadInventory, saveInventory } = inventorySlice.actions;
+export const { resetDraftInventory, updateDraftInventory, importInventory, deleteInventory, addRecipe, updateRecipe, deleteRecipe, loadInventory, saveInventory } = inventorySlice.actions;
 
-export const { getInventory, getInventoryItem } = inventorySlice.selectors;
+export const { getInventoryDraft, getInventory, getInventoryItem } = inventorySlice.selectors;
 
 export function findInventoryItemById(inventory: IInventoryItem[], itemId: string) {
 	return inventory.find(({ id }) => id === itemId);
@@ -132,7 +148,7 @@ export function importInventoryThunk(inventory: IInventoryItem[]): AppThunk {
 export function updateRecipesThunk(updateRecord: IInventoryItem): AppThunk {
 	return function thunk(dispatch, getState) {
 		// This gets the previous state of our record
-		const found = findInventoryItemById(getInventory(getState()), updateRecord.id)!;
+		const found = findInventoryItemById(getInventoryDraft(getState()), updateRecord.id)!;
 		const previousItems = found.recipes;
 		const updatedItems = updateRecord.recipes;
 		previousItems.forEach((item) => {
@@ -157,6 +173,12 @@ export function updateRecipesThunk(updateRecord: IInventoryItem): AppThunk {
 				dispatch(addRecipe(item));
 			}
 		}
+		dispatch(updateDraftInventory());
+	};
+}
+
+export function saveInventoryThunk(): AppThunk {
+	return function thunk(dispatch) {
 		dispatch(saveInventory(false));
 		dispatch(loadFactoryInventoryThunk());
 	};

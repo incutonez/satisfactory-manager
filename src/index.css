@@ -7,6 +7,12 @@
 
 @theme {
     --default-font-family: "Open Sans";
+    --color-positive: var(--color-green-300);
+    --color-positive-100: var(--color-green-700);
+    --color-negative: var(--color-red-300);
+    --color-negative-100: var(--color-red-700);
+    --color-zero: var(--color-neutral-300);
+    --color-zero-100: var(--color-neutral-700);
 }
 
 html, body, #root {
@@ -34,5 +40,26 @@ input[type=number] {
 @layer components {
     .link {
         @apply underline text-blue-700;
+    }
+
+    .overlay-arrow[data-placement="right"] > svg {
+        @apply rotate-90 left-4 top-1;
+    }
+
+    .overlay-arrow[data-placement="left"] > svg {
+        @apply -rotate-90 right-4 top-1;
+    }
+    
+    /* If our table cell doesn't have a background, apply one */
+    td.table-data-cell:not([class^="bg-"]) {
+        @apply bg-white;
+    }
+    
+    th.table-data-footer-cell:not([class^="bg-"]) {
+        @apply bg-stone-200;
+    }
+    
+    .field-combo-box[data-required="true"] > input:invalid {
+        @apply !ring-red-600;
     }
 }

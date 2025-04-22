@@ -9,7 +9,7 @@ export interface ITableData<TData = unknown> {
 	showSummary?: boolean;
 }
 
-const DefaultCellCls = "border-r border-b last:border-r-0 px-2 py-1";
+const DefaultCellCls = "table-data-cell border-r border-b last:border-r-0 px-2 py-1";
 
 export function TableData<TData = unknown>({ table, showSummary = false, hideHeaders = false }: ITableData<TData>) {
 	let footerNodes;
@@ -127,7 +127,7 @@ export function TableData<TData = unknown>({ table, showSummary = false, hideHea
 
 	function getFooterClass(header: Header<TData, unknown>) {
 		const meta = header.column.columnDef.meta;
-		const cls = ["z-1 p-2 border-r last:border-r-0 border-b border-t sticky bottom-0 bg-stone-200", meta?.columnWidth ?? "min-w-64"];
+		const cls = ["table-data-footer-cell z-1 p-2 border-r last:border-r-0 border-b border-t sticky bottom-0", meta?.columnWidth ?? "min-w-64"];
 		if (meta?.footerCls) {
 			cls.push(meta.footerCls(header));
 		}
@@ -138,24 +138,15 @@ export function TableData<TData = unknown>({ table, showSummary = false, hideHea
 		const cls = [DefaultCellCls];
 		const { column } = cell;
 		const { meta } = column.columnDef;
-		if (column.id === "total") {
-			const value = cell.getValue<number>();
-			if (value < 0) {
-				cls.push("bg-red-200");
-			}
-			else if (value > 0) {
-				cls.push("bg-green-200");
-			}
-			else {
-				cls.push("bg-white");
-			}
-		}
-		else {
-			cls.push("bg-white");
-		}
 		if (meta) {
-			if (meta.cellCls) {
-				cls.push(meta.cellCls);
+			const { cellCls } = meta;
+			if (cellCls) {
+				if (typeof cellCls === "function") {
+					cls.push(cellCls(cell));
+				}
+				else {
+					cls.push(cellCls);
+				}
 			}
 			if (meta.onClickCell) {
 				cls.push("cursor-pointer hover:bg-blue-200");
