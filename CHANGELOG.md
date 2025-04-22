@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/incutonez/satisfactory-manager/compare/v1.1.4...v1.2.0) (2025-04-22)
+
+### Features
+
+* Additional Changes ([#13](https://github.com/incutonez/satisfactory-manager/issues/13)) ([666fe10](https://github.com/incutonez/satisfactory-manager/commit/666fe10c345294964b3e70bfd7a2de8ed5fd922f))
+
 ## [1.1.4](https://github.com/incutonez/satisfactory-manager/compare/v1.1.3...v1.1.4) (2025-04-20)
 
 ### Bug Fixes
