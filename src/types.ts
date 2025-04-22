@@ -1,5 +1,6 @@
 ﻿import { TNodeType } from "@/api/data.ts";
 import { TMachine } from "@/api/machines.ts";
+import { TRecipe } from "@/api/recipes.ts";
 
 export type TCategory = "ore" | "ingot";
 
@@ -43,7 +44,7 @@ export type TRecipeType = "consumes" | "produces" | "both";
 
 export interface IInventoryRecipe {
 	id: string;
-	recipeId: string;
+	recipeId: TRecipe;
 	recipeName: string;
 	overclockValue: number;
 	somersloopValue: number;
@@ -71,6 +72,7 @@ export interface IRecipe {
 	items: IRecipeItem[];
 	producedIn: TMachine[];
 	isRaw?: boolean;
+	isLiquid?: boolean;
 }
 
 export interface IMachine {

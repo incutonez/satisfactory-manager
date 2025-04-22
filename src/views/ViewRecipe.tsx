@@ -6,16 +6,16 @@ import { TMachine } from "@/api/machines.ts";
 import { recipes } from "@/api/recipes.ts";
 import { BaseButton, IBaseButton } from "@/components/BaseButton.tsx";
 import { BaseDialog, IBaseDialog } from "@/components/BaseDialog.tsx";
-import { RecipeMachine } from "@/components/CellItem.tsx";
 import { ComboBox } from "@/components/ComboBox.tsx";
 import { FieldDisplay } from "@/components/FieldDisplay.tsx";
 import { FieldNumber } from "@/components/FieldNumber.tsx";
 import { IconSave } from "@/components/Icons.tsx";
-import { RecipeItems } from "@/components/RecipeItems.tsx";
 import { RouteViewItem } from "@/routes.ts";
 import { useAppDispatch, useAppSelector } from "@/store.ts";
 import { INodeType, IRecipe, TItemKey, TRecipeType } from "@/types.ts";
 import { calculateSomersloop } from "@/utils/common.ts";
+import { RecipeItems } from "@/views/recipe/RecipeItems.tsx";
+import { RecipeMachine } from "@/views/shared/CellItem.tsx";
 
 export interface IViewRecipe extends IBaseDialog {
 	recipeId?: string;
@@ -64,6 +64,7 @@ export function ViewRecipeItems({ record, recipeId, nodeTypeMultiplier, setSelec
 	}
 	let machineNode;
 	let nodeTypeNode;
+	let showLeftArrow = true;
 	if (record.isRaw) {
 		machineNode = (
 			<ComboBox
@@ -90,6 +91,25 @@ export function ViewRecipeItems({ record, recipeId, nodeTypeMultiplier, setSelec
 				setSelection={setSelectedNodeType}
 			/>
 		);
+	}
+	else if (record.isLiquid) {
+		showLeftArrow = false;
+		if (record.id !== "recipeWater") {
+			nodeTypeNode = (
+				<ComboBox
+					isRequired={true}
+					label="Node Type"
+					options={NodeTypes}
+					valueField="id"
+					displayField="name"
+					inputCls="w-21"
+					labelCls="w-21"
+					value={nodeType}
+					setValue={setNodeType}
+					setSelection={setSelectedNodeType}
+				/>
+			);
+		}
 	}
 	else {
 		machineNode = (
@@ -150,7 +170,10 @@ export function ViewRecipeItems({ record, recipeId, nodeTypeMultiplier, setSelec
 			</section>
 			<section className="flex items-center justify-center space-x-4 flex-1">
 				{machineNode}
-				<RecipeMachine machineId={machineId as string} />
+				<RecipeMachine
+					showLeftArrow={showLeftArrow}
+					machineId={machineId as string}
+				/>
 				<RecipeItems
 					items={record.items}
 					recipeId={recipeId}
@@ -183,7 +206,7 @@ export function ViewRecipe({ recipeId, recipeType, itemId, show }: IViewRecipe) 
 		/>
 	);
 	const nodeTypeMultiplier = useMemo(() => {
-		if (recipeRecord?.isRaw && selectedNodeType) {
+		if ((recipeRecord?.isRaw || recipeRecord?.isLiquid) && selectedNodeType) {
 			let multiplier = 1;
 			if (machineId === "minerMk2") {
 				multiplier = 2;
@@ -193,7 +216,7 @@ export function ViewRecipe({ recipeId, recipeType, itemId, show }: IViewRecipe) 
 			}
 			return (selectedNodeType.amountPerMinute / 120) * multiplier;
 		}
-		// Not using a miner, so return 1 as identity value
+		// Not using a miner or extractor, so return 1 as identity value
 		return 1;
 	}, [recipeRecord, selectedNodeType, machineId]);
 

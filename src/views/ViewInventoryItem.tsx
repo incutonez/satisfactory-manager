@@ -204,7 +204,7 @@ export function ViewInventoryItem({ show }: IViewItem) {
 						else if (record.producingTotal) {
 							return "bg-zero";
 						}
-						return "bg-white";
+						return "";
 					},
 				},
 				footer() {

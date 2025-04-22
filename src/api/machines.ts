@@ -60,6 +60,18 @@ export const machines = [{
 	id: "minerMk3",
 	image: "minerMk3.png",
 	name: "Miner Mk.3",
+}, {
+	id: "waterExtractor",
+	image: "waterExtractor.png",
+	name: "Water Extractor",
+}, {
+	id: "oilExtractor",
+	image: "oilExtractor.png",
+	name: "Oil Extractor",
+}, {
+	id: "resourceWellExtractor",
+	image: "resourceWellExtractor.png",
+	name: "Resource Well Extractor",
 }] as const satisfies IMachine[];
 
 machines.sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));

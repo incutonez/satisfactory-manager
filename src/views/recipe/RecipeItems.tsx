@@ -2,12 +2,12 @@
 import { getActiveItemRecipe } from "@/api/activeItem.ts";
 import { getInventoryItem } from "@/api/inventory.ts";
 import { BaseButton } from "@/components/BaseButton.tsx";
-import { ItemImage } from "@/components/CellItem.tsx";
 import { IconCheckCircle, IconError } from "@/components/Icons.tsx";
 import { TooltipContext } from "@/components/TooltipContext.tsx";
 import { useAppSelector } from "@/store.ts";
 import { IRecipeItem, TItemKey, TRecipeType } from "@/types.ts";
 import { pluralize } from "@/utils/common.ts";
+import { ItemImage } from "@/views/shared/CellItem.tsx";
 
 export interface IRecipeItems {
 	items?: IRecipeItem[];
@@ -48,7 +48,6 @@ export function RecipeItems({ items = [], recipeId, recipeType, highlightItem, m
 	);
 }
 
-// TODOJEF: Add recipes for normal things like ore and water with their miners and extractors
 export function RecipeItem({ item, recipeId, multiplier, highlightItem }: RecipeItemComponent) {
 	const { itemId, amountPerMinute, recipeType } = item;
 	const inventoryItem = useAppSelector((state) => getInventoryItem(state, itemId));
@@ -56,7 +55,7 @@ export function RecipeItem({ item, recipeId, multiplier, highlightItem }: Recipe
 	if (!inventoryItem) {
 		return;
 	}
-	const amountPerMinuteDisplay = activeItemRecipe?.items.find((thing) => thing.recipeType === recipeType && thing.itemId === itemId)?.amountPerMinuteDisplay ?? 0;
+	const amountPerMinuteDisplay = activeItemRecipe?.items.find((itemRecord) => itemRecord.recipeType === recipeType && itemRecord.itemId === itemId)?.amountPerMinuteDisplay ?? 0;
 	const amount = amountPerMinute * multiplier;
 	const cls = classNames("rounded-md", highlightItem === itemId ? "bg-yellow-200" : "");
 	let { consumingTotal, producingTotal } = inventoryItem;

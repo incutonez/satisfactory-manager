@@ -19,7 +19,6 @@ import {
 import { BaseButton } from "@/components/BaseButton.tsx";
 import { BaseDropdown } from "@/components/BaseDropdown.tsx";
 import { BaseMenuItem } from "@/components/BaseMenuItem.tsx";
-import { ItemName } from "@/components/CellItem.tsx";
 import { ComboBox, TComboBoxValue } from "@/components/ComboBox.tsx";
 import { FieldText } from "@/components/FieldText.tsx";
 import { IconAdd, IconDelete, IconDownload, IconEdit, IconImport, IconRevert } from "@/components/Icons.tsx";
@@ -27,6 +26,7 @@ import { TableData } from "@/components/TableData.tsx";
 import { RouteViewItem } from "@/routes.ts";
 import { useAppDispatch, useAppSelector } from "@/store.ts";
 import { IInventoryItem } from "@/types.ts";
+import { ItemName } from "@/views/shared/CellItem.tsx";
 import { ViewFactory } from "@/views/ViewFactory.tsx";
 import { ViewImport } from "@/views/ViewImport.tsx";
 
