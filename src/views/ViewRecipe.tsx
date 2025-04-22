@@ -1,18 +1,20 @@
 ﻿import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { getActiveItemRecipe, saveItemThunk } from "@/api/activeItem.ts";
+import { Miners, NodeTypes, TNodeType } from "@/api/data.ts";
+import { TMachine } from "@/api/machines.ts";
 import { recipes } from "@/api/recipes.ts";
 import { BaseButton, IBaseButton } from "@/components/BaseButton.tsx";
 import { BaseDialog, IBaseDialog } from "@/components/BaseDialog.tsx";
 import { RecipeMachine } from "@/components/CellItem.tsx";
-import { ComboBox, TComboBoxValue } from "@/components/ComboBox.tsx";
+import { ComboBox } from "@/components/ComboBox.tsx";
 import { FieldDisplay } from "@/components/FieldDisplay.tsx";
 import { FieldNumber } from "@/components/FieldNumber.tsx";
 import { IconSave } from "@/components/Icons.tsx";
 import { RecipeItems } from "@/components/RecipeItems.tsx";
 import { RouteViewItem } from "@/routes.ts";
 import { useAppDispatch, useAppSelector } from "@/store.ts";
-import { IRecipe, TItemKey, TRecipeType } from "@/types.ts";
+import { INodeType, IRecipe, TItemKey, TRecipeType } from "@/types.ts";
 import { calculateSomersloop } from "@/utils/common.ts";
 
 export interface IViewRecipe extends IBaseDialog {
@@ -35,6 +37,12 @@ export interface IViewRecipeItems {
 	setSomersloop: Dispatch<SetStateAction<number>>;
 	machineCount: number;
 	setMachineCount: Dispatch<SetStateAction<number>>;
+	nodeType?: TNodeType;
+	setNodeType: Dispatch<SetStateAction<TNodeType | undefined>>;
+	setSelectedNodeType: Dispatch<SetStateAction<INodeType | undefined>>;
+	machineId?: TMachine;
+	setMachineId: Dispatch<SetStateAction<TMachine | undefined>>;
+	nodeTypeMultiplier: number;
 }
 
 export function ViewRecipeSave({ record, ...props }: IViewRecipeSave) {
@@ -48,10 +56,51 @@ export function ViewRecipeSave({ record, ...props }: IViewRecipeSave) {
 	);
 }
 
-export function ViewRecipeItems({ record, recipeId, overclock, setOverclock, somersloop, setSomersloop, machineCount, setMachineCount, itemId }: IViewRecipeItems) {
+export function ViewRecipeItems({ record, recipeId, nodeTypeMultiplier, setSelectedNodeType, setNodeType, setMachineId, machineId, nodeType, overclock, setOverclock, somersloop, setSomersloop, machineCount, setMachineCount, itemId }: IViewRecipeItems) {
 	const overclockValue = useMemo(() => overclock / 100, [overclock]);
+
 	if (!record) {
 		return;
+	}
+	let machineNode;
+	let nodeTypeNode;
+	if (record.isRaw) {
+		machineNode = (
+			<ComboBox
+				isRequired={true}
+				options={Miners}
+				label="Miner"
+				valueField="id"
+				displayField="name"
+				value={machineId}
+				setValue={setMachineId}
+			/>
+		);
+		nodeTypeNode = (
+			<ComboBox
+				isRequired={true}
+				label="Node Type"
+				options={NodeTypes}
+				valueField="id"
+				displayField="name"
+				inputCls="w-21"
+				labelCls="w-21"
+				value={nodeType}
+				setValue={setNodeType}
+				setSelection={setSelectedNodeType}
+			/>
+		);
+	}
+	else {
+		machineNode = (
+			<RecipeItems
+				items={record.items}
+				recipeId={recipeId}
+				recipeType="consumes"
+				highlightItem={itemId}
+				multiplier={overclockValue * machineCount}
+			/>
+		);
 	}
 
 	return (
@@ -87,29 +136,27 @@ export function ViewRecipeItems({ record, recipeId, overclock, setOverclock, som
 						value={somersloop}
 					/>
 				</section>
-				<FieldNumber
-					label="Machines"
-					min={1}
-					inputWidth="w-16"
-					setter={(value = 1) => setMachineCount(value)}
-					value={machineCount}
-				/>
+				<section className="flex flex-col space-y-2">
+					<FieldNumber
+						label="Machines"
+						min={1}
+						inputWidth="w-21"
+						labelCls="w-21"
+						setter={(value = 1) => setMachineCount(value)}
+						value={machineCount}
+					/>
+					{nodeTypeNode}
+				</section>
 			</section>
 			<section className="flex items-center justify-center space-x-4 flex-1">
-				<RecipeItems
-					items={record.items}
-					recipeId={recipeId}
-					recipeType="consumes"
-					highlightItem={itemId}
-					multiplier={overclockValue * machineCount}
-				/>
-				<RecipeMachine record={record} />
+				{machineNode}
+				<RecipeMachine machineId={machineId as string} />
 				<RecipeItems
 					items={record.items}
 					recipeId={recipeId}
 					recipeType="produces"
 					highlightItem={itemId}
-					multiplier={overclockValue * machineCount * calculateSomersloop(somersloop, "produces")}
+					multiplier={overclockValue * machineCount * calculateSomersloop(somersloop, "produces") * nodeTypeMultiplier}
 				/>
 			</section>
 		</section>
@@ -120,18 +167,35 @@ export function ViewRecipe({ recipeId, recipeType, itemId, show }: IViewRecipe) 
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 	const [availableRecipes, setAvailableRecipes] = useState<IRecipe[]>(recipes);
-	const [recipe, setRecipe] = useState<TComboBoxValue>(itemId ?? "");
+	const [recipe, setRecipe] = useState<string | undefined>(itemId ?? "");
 	const [recipeRecord, setRecipeRecord] = useState<IRecipe>();
 	const activeItemRecipe = useAppSelector((state) => getActiveItemRecipe(state, recipeId));
 	const [overclock, setOverclock] = useState(activeItemRecipe?.overclockValue ?? 100);
 	const [somersloop, setSomersloop] = useState(activeItemRecipe?.somersloopValue ?? 0);
 	const [machineCount, setMachineCount] = useState(activeItemRecipe?.machineCount ?? 1);
+	const [machineId, setMachineId] = useState<TMachine>();
+	const [nodeType, setNodeType] = useState<TNodeType | undefined>();
+	const [selectedNodeType, setSelectedNodeType] = useState<INodeType>();
 	const footerNode = (
 		<ViewRecipeSave
 			record={recipeRecord}
 			onClick={onClickSave}
 		/>
 	);
+	const nodeTypeMultiplier = useMemo(() => {
+		if (recipeRecord?.isRaw && selectedNodeType) {
+			let multiplier = 1;
+			if (machineId === "minerMk2") {
+				multiplier = 2;
+			}
+			else if (machineId === "minerMk3") {
+				multiplier = 4;
+			}
+			return (selectedNodeType.amountPerMinute / 120) * multiplier;
+		}
+		// Not using a miner, so return 1 as identity value
+		return 1;
+	}, [recipeRecord, selectedNodeType, machineId]);
 
 	function viewItem() {
 		navigate({
@@ -152,11 +216,14 @@ export function ViewRecipe({ recipeId, recipeType, itemId, show }: IViewRecipe) 
 	function onClickSave() {
 		if (recipeRecord) {
 			dispatch(saveItemThunk({
+				machineId: machineId ?? recipeRecord.producedIn[0],
+				nodeType,
 				machineCount,
 				recipeRecord,
 				activeItemRecipe,
 				overclock,
 				somersloop,
+				nodeTypeMultiplier,
 			}));
 			viewItem();
 		}
@@ -168,8 +235,16 @@ export function ViewRecipe({ recipeId, recipeType, itemId, show }: IViewRecipe) 
 			setSomersloop(activeItemRecipe.somersloopValue);
 			setMachineCount(activeItemRecipe.machineCount);
 			setRecipe(activeItemRecipe.recipeId);
+			setMachineId(activeItemRecipe.producedIn);
+			setNodeType(activeItemRecipe.nodeType);
 		}
 	}, [activeItemRecipe, setRecipe]);
+
+	useEffect(() => {
+		if (recipeRecord && !activeItemRecipe?.isRaw) {
+			setMachineId(recipeRecord.producedIn[0]);
+		}
+	}, [recipeRecord, activeItemRecipe]);
 
 	useEffect(() => {
 		const showAllRecipes = recipeType === "both";
@@ -212,6 +287,12 @@ export function ViewRecipe({ recipeId, recipeType, itemId, show }: IViewRecipe) 
 					setSomersloop={setSomersloop}
 					machineCount={machineCount}
 					setMachineCount={setMachineCount}
+					machineId={machineId}
+					setMachineId={setMachineId}
+					nodeType={nodeType}
+					setNodeType={setNodeType}
+					setSelectedNodeType={setSelectedNodeType}
+					nodeTypeMultiplier={nodeTypeMultiplier}
 				/>
 			</article>
 		</BaseDialog>

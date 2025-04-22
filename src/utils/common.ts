@@ -40,10 +40,10 @@ export function calculateSomersloop(somersloop: number, recipeType: TRecipeType)
 	return recipeType === "produces" ? 1 + somersloop : 1;
 }
 
-export function calculateAmountDisplays({ items, overclock, somersloop, machineCount }: ICalculateAmountDisplays) {
+export function calculateAmountDisplays({ items, overclock, somersloop, machineCount, nodeTypeMultiplier = 1 }: ICalculateAmountDisplays) {
 	overclock /= 100;
 	items.forEach((item) => {
-		const multiplier = overclock * machineCount * calculateSomersloop(somersloop, item.recipeType);
+		const multiplier = overclock * machineCount * calculateSomersloop(somersloop, item.recipeType) * nodeTypeMultiplier;
 		item.amountPerMinuteDisplay = item.amountPerMinute * multiplier;
 		item.amountPerCycleDisplay = item.amountPerCycle * multiplier;
 	});

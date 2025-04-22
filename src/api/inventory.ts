@@ -10,6 +10,11 @@ export const inventoryItems = defaultInventory as IInventoryItem[];
 export interface IState {
 	inventory: IInventoryItem[];
 	inventoryId: string;
+	/**
+	 * We have a draft of the inventory because we need to be able to calculate recipe values when we update an
+	 * active item's recipe... so we can show the tooltip that has a table of the current calculations.  inventoryDraft
+	 * then either gets reset to inventory upon cancel in ViewInventoryItem or if saved, inventory becomes inventoryDraft
+	 */
 	inventoryDraft: IInventoryItem[];
 }
 

@@ -4117,6 +4117,30 @@
     ]
   },
   {
+    "id": "recipeIron",
+    "productionCycleTime": 0.5,
+    "cyclesPerMinute": 120,
+    "items": [
+      {
+        "recipeType": "produces",
+        "amountPerCycleDisplay": 0,
+        "amountPerMinuteDisplay": 0,
+        "itemId": "ironOre",
+        "amountPerCycle": 1,
+        "amountPerMinute": 120
+      }
+    ],
+    "name": "Iron Ore",
+    "isAlternate": false,
+    "isRaw": true,
+    "producedIn": [
+      "minerPortable",
+      "minerMk1",
+      "minerMk2",
+      "minerMk3"
+    ]
+  },
+  {
     "id": "recipeLimestoneSulfurC",
     "productionCycleTime": 6,
     "cyclesPerMinute": 10,

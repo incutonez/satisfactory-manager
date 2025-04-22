@@ -58,4 +58,8 @@ input[type=number] {
     th.table-data-footer-cell:not([class^="bg-"]) {
         @apply bg-stone-200;
     }
+    
+    .field-combo-box[data-required="true"] > input:invalid {
+        @apply !ring-red-600;
+    }
 }

@@ -1,5 +1,7 @@
 ﻿import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { TNodeType } from "@/api/data.ts";
 import { getInventoryItem, updateRecipesThunk } from "@/api/inventory.ts";
+import { TMachine } from "@/api/machines.ts";
 import { AppThunk } from "@/store.ts";
 import { IInventoryItem, IInventoryRecipe, IRecipe } from "@/types.ts";
 import { calculateAmountDisplays, clone, sumRecipes, uuid } from "@/utils/common.ts";
@@ -22,12 +24,13 @@ export const activeItemSlice = createSlice({
 			if (!activeItem) {
 				return;
 			}
-			const { id, overclockValue, machineCount, somersloopValue, items } = payload;
+			const { id, overclockValue, machineCount, somersloopValue, items, nodeTypeMultiplier } = payload;
 			const { recipes } = activeItem;
 			const foundIndex = recipes.findIndex((item) => item.id === id) ?? -1;
 			calculateAmountDisplays({
 				items,
 				machineCount,
+				nodeTypeMultiplier,
 				overclock: overclockValue,
 				somersloop: somersloopValue,
 			});
@@ -86,18 +89,24 @@ interface ISaveItemThunk {
 	machineCount: number;
 	somersloop: number;
 	overclock: number;
+	nodeTypeMultiplier: number;
+	machineId: TMachine;
+	nodeType?: TNodeType;
 }
 
-export function saveItemThunk({ recipeRecord, activeItemRecipe, machineCount, overclock, somersloop }: ISaveItemThunk): AppThunk {
+export function saveItemThunk({ recipeRecord, nodeType, machineId, activeItemRecipe, machineCount, overclock, somersloop, nodeTypeMultiplier }: ISaveItemThunk): AppThunk {
 	return function thunk(dispatch, getState) {
 		dispatch(updateItemRecipe({
+			nodeTypeMultiplier,
 			machineCount,
+			nodeType,
 			recipeId: recipeRecord.id,
 			recipeName: recipeRecord.name,
 			cyclesPerMinute: recipeRecord.cyclesPerMinute,
 			isAlternate: recipeRecord.isAlternate,
 			items: clone(recipeRecord.items),
-			producedIn: clone(recipeRecord.producedIn),
+			isRaw: recipeRecord.isRaw,
+			producedIn: machineId,
 			productionCycleTime: recipeRecord.productionCycleTime,
 			id: activeItemRecipe?.id || uuid(),
 			overclockValue: overclock,
