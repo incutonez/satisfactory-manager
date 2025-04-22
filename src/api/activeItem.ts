@@ -2,6 +2,7 @@
 import { TNodeType } from "@/api/data.ts";
 import { getInventoryItem, updateRecipesThunk } from "@/api/inventory.ts";
 import { TMachine } from "@/api/machines.ts";
+import { TRecipe } from "@/api/recipes.ts";
 import { AppThunk } from "@/store.ts";
 import { IInventoryItem, IInventoryRecipe, IRecipe } from "@/types.ts";
 import { calculateAmountDisplays, clone, sumRecipes, uuid } from "@/utils/common.ts";
@@ -100,7 +101,7 @@ export function saveItemThunk({ recipeRecord, nodeType, machineId, activeItemRec
 			nodeTypeMultiplier,
 			machineCount,
 			nodeType,
-			recipeId: recipeRecord.id,
+			recipeId: recipeRecord.id as TRecipe,
 			recipeName: recipeRecord.name,
 			cyclesPerMinute: recipeRecord.cyclesPerMinute,
 			isAlternate: recipeRecord.isAlternate,

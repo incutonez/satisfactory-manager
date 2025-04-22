@@ -19,7 +19,7 @@ import {
 import { BaseButton } from "@/components/BaseButton.tsx";
 import { BaseDropdown } from "@/components/BaseDropdown.tsx";
 import { BaseMenuItem } from "@/components/BaseMenuItem.tsx";
-import { ComboBox, TComboBoxValue } from "@/components/ComboBox.tsx";
+import { ComboBox } from "@/components/ComboBox.tsx";
 import { FieldText } from "@/components/FieldText.tsx";
 import { IconAdd, IconDelete, IconDownload, IconEdit, IconImport, IconRevert } from "@/components/Icons.tsx";
 import { TableData } from "@/components/TableData.tsx";
@@ -147,8 +147,8 @@ export function ViewInventoryItems() {
 		setShowImportDialog(true);
 	}
 
-	function onSetFactory(factoryId?: TComboBoxValue) {
-		dispatch(setActiveFactory(factoryId as string));
+	function onSetFactory(factoryId?: string) {
+		dispatch(setActiveFactory(factoryId));
 	}
 
 	function onClickEditFactory() {

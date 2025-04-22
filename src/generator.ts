@@ -1,6 +1,7 @@
 ﻿import { copyFileSync, writeFileSync } from "fs";
 import camelCase from "just-camel-case";
 import path from "path";
+import { TMachine } from "@/api/machines.ts";
 import data from "./satisfactory.json";
 import { IInventoryItem, IMachine, IRecipe, IRecipeItem, TItemKey } from "./types.ts";
 import { capitalizeFirstLetters } from "./utils/common.ts";
@@ -141,7 +142,7 @@ for (const key in recipes) {
 		items,
 		name: recipe.name,
 		isAlternate: recipe.alternate,
-		producedIn: recipe.producedIn,
+		producedIn: recipe.producedIn as TMachine[],
 	});
 }
 

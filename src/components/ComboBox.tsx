@@ -19,7 +19,7 @@ export interface IComboBox<TOption extends object, TKey = keyof TOption, TValue 
 	options: TOption[];
 	valueField?: TKey;
 	displayField?: TKey;
-	setValue?: Dispatch<SetStateAction<TValue | undefined>>;
+	setValue?: Dispatch<SetStateAction<TValue | undefined>> | ((value?: TValue) => void);
 	setSelection?: (value?: TOption) => void;
 	label?: string;
 	children?: ReactNode | ((item: TOption) => ReactNode);
