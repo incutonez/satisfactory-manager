@@ -156,7 +156,7 @@ export function TableData<TData = unknown>({ table, showSummary = false, hideHea
 	}
 
 	return (
-		<article className="overflow-auto flex-1">
+		<article className="overflow-auto size-full">
 			<table className={tableCls}>
 				<thead>
 					{tableHeaders}

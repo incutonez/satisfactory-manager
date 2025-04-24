@@ -62,4 +62,18 @@ input[type=number] {
     .field-combo-box[data-required="true"] > input:invalid {
         @apply !ring-red-600;
     }
+    
+    .base-tabs {
+        .tab-list {
+            @apply flex data-[orientation=vertical]:flex-col;
+
+            .tab-header {
+                @apply cursor-pointer hover:bg-sky-300 px-2 py-1 rounded-t-md;
+                
+                &[data-selected="true"] {
+                    @apply border-b-2 border-sky-600 font-semibold bg-sky-200;
+                }
+            }
+        }
+    }
 }

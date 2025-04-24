@@ -239,7 +239,7 @@ export function ViewRecipe({ recipeId, recipeType, itemId, show }: IViewRecipe) 
 	function onClickSave() {
 		if (recipeRecord) {
 			dispatch(saveItemThunk({
-				machineId: machineId ?? recipeRecord.producedIn[0],
+				machineId: machineId ?? recipeRecord.producedIn,
 				nodeType,
 				machineCount,
 				recipeRecord,
@@ -265,7 +265,7 @@ export function ViewRecipe({ recipeId, recipeType, itemId, show }: IViewRecipe) 
 
 	useEffect(() => {
 		if (recipeRecord && !activeItemRecipe?.isRaw) {
-			setMachineId(recipeRecord.producedIn[0]);
+			setMachineId(recipeRecord.producedIn);
 		}
 	}, [recipeRecord, activeItemRecipe]);
 

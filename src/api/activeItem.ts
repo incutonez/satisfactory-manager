@@ -10,14 +10,20 @@ import { calculateAmountDisplays, clone, sumRecipes, uuid } from "@/utils/common
 export interface IActiveItemState {
 	activeItem?: IInventoryItem;
 	activeItemRecipe?: IInventoryRecipe;
+	currentSearch: string;
 }
 
-const initialState: IActiveItemState = {};
+const initialState: IActiveItemState = {
+	currentSearch: "",
+};
 
 export const activeItemSlice = createSlice({
 	initialState,
 	name: "activeItem",
 	reducers: {
+		setSearch(state, { payload }: PayloadAction<string>) {
+			state.currentSearch = payload;
+		},
 		setActiveItem(state, { payload }: PayloadAction<IInventoryItem | undefined>) {
 			state.activeItem = payload;
 		},
@@ -70,12 +76,15 @@ export const activeItemSlice = createSlice({
 		getActiveItemRecipe(state, recipeId): IInventoryRecipe | undefined {
 			return activeItemSlice.getSelectors().getActiveItemRecipes(state)?.find(({ id }) => id === recipeId);
 		},
+		getCurrentSearch(state) {
+			return state.currentSearch;
+		},
 	},
 });
 
-export const { setActiveItem, updateItemRecipe, deleteItemRecipe } = activeItemSlice.actions;
+export const { setSearch, setActiveItem, updateItemRecipe, deleteItemRecipe } = activeItemSlice.actions;
 
-export const { getActiveItem, getActiveItemRecipes, getActiveItemRecipe } = activeItemSlice.selectors;
+export const { getCurrentSearch, getActiveItem, getActiveItemRecipes, getActiveItemRecipe } = activeItemSlice.selectors;
 
 export function loadItemThunk(itemId: string): AppThunk {
 	return function thunk(dispatch, getState) {
@@ -101,6 +110,7 @@ export function saveItemThunk({ recipeRecord, nodeType, machineId, activeItemRec
 			nodeTypeMultiplier,
 			machineCount,
 			nodeType,
+			basePower: recipeRecord.basePower,
 			recipeId: recipeRecord.id as TRecipe,
 			recipeName: recipeRecord.name,
 			cyclesPerMinute: recipeRecord.cyclesPerMinute,

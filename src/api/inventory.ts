@@ -1,9 +1,9 @@
-﻿import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+﻿import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { getActiveFactory, IFactory, loadFactoryInventoryThunk } from "@/api/factories.ts";
 import defaultInventory from "@/api/inventory.json";
 import { AppThunk } from "@/store.ts";
 import { IInventoryItem, IInventoryRecipe } from "@/types.ts";
-import { clone, downloadFile, sumRecipes } from "@/utils/common.ts";
+import { calculateMachinePower, clone, downloadFile, sumRecipes } from "@/utils/common.ts";
 
 export const inventoryItems = defaultInventory as IInventoryItem[];
 
@@ -116,6 +116,28 @@ export const inventorySlice = createSlice({
 export const { resetDraftInventory, updateDraftInventory, importInventory, deleteInventory, addRecipe, updateRecipe, deleteRecipe, loadInventory, saveInventory } = inventorySlice.actions;
 
 export const { getInventoryDraft, getInventory, getInventoryItem } = inventorySlice.selectors;
+
+export const getInventoryRecipes = createSelector(getInventory, (inventory) => {
+	const outputRecipes: IInventoryRecipe[] = [];
+	inventory.forEach(({ recipes }) => {
+		for (const recipe of recipes) {
+			const found = outputRecipes.find((record) => record.id === recipe.id);
+			if (found) {
+				continue;
+			}
+			outputRecipes.push({
+				...recipe,
+				powerConsumption: calculateMachinePower({
+					basePower: recipe.basePower,
+					somersloop: recipe.somersloopValue,
+					overclock: recipe.overclockValue,
+					machineCount: recipe.machineCount,
+				}),
+			});
+		}
+	});
+	return outputRecipes;
+});
 
 export function findInventoryItemById(inventory: IInventoryItem[], itemId: string) {
 	return inventory.find(({ id }) => id === itemId);

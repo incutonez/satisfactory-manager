@@ -55,6 +55,8 @@ export interface IInventoryRecipe {
 	cyclesPerMinute: number;
 	isAlternate: boolean;
 	nodeTypeMultiplier: number;
+	powerConsumption?: number;
+	basePower: number;
 	isRaw?: boolean;
 	items: IRecipeItem[];
 	producedIn: TMachine;
@@ -70,15 +72,20 @@ export interface IRecipe {
 	cyclesPerMinute: number;
 	isAlternate: boolean;
 	items: IRecipeItem[];
-	producedIn: TMachine[];
+	producedIn: TMachine;
+	basePower: number;
 	isRaw?: boolean;
 	isLiquid?: boolean;
 }
+
+export type TMachinePowerType = "consumes" | "produces" | "both";
 
 export interface IMachine {
 	id: string;
 	name: string;
 	image: string;
+	powerType: TMachinePowerType;
+	basePower: number;
 }
 
 export interface IRouteViewItem {
@@ -96,4 +103,11 @@ export interface ICalculateAmountDisplays {
 	somersloop: number;
 	machineCount: number;
 	nodeTypeMultiplier: number;
+}
+
+export interface IMachinePower {
+	somersloop: number;
+	overclock: number;
+	machineCount: number;
+	basePower: number;
 }

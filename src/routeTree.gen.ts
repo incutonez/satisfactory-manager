@@ -11,12 +11,19 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as PowerImport } from './routes/power'
 import { Route as ItemsImport } from './routes/items'
 import { Route as IndexImport } from './routes/index'
 import { Route as ItemsItemIdRecipeTypeRecipeTypeImport } from './routes/items.$itemId.recipeType/$recipeType'
 import { Route as ItemsItemIdRecipeTypeRecipeTypeRecipesRecipeIdImport } from './routes/items.$itemId.recipeType/$recipeType/recipes.$recipeId'
 
 // Create/Update Routes
+
+const PowerRoute = PowerImport.update({
+  id: '/power',
+  path: '/power',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const ItemsRoute = ItemsImport.update({
   id: '/items',
@@ -60,6 +67,13 @@ declare module '@tanstack/react-router' {
       path: '/items'
       fullPath: '/items'
       preLoaderRoute: typeof ItemsImport
+      parentRoute: typeof rootRoute
+    }
+    '/power': {
+      id: '/power'
+      path: '/power'
+      fullPath: '/power'
+      preLoaderRoute: typeof PowerImport
       parentRoute: typeof rootRoute
     }
     '/items/$itemId/recipeType/$recipeType': {
@@ -110,6 +124,7 @@ const ItemsRouteWithChildren = ItemsRoute._addFileChildren(ItemsRouteChildren)
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/items': typeof ItemsRouteWithChildren
+  '/power': typeof PowerRoute
   '/items/$itemId/recipeType/$recipeType': typeof ItemsItemIdRecipeTypeRecipeTypeRouteWithChildren
   '/items/$itemId/recipeType/$recipeType/recipes/$recipeId': typeof ItemsItemIdRecipeTypeRecipeTypeRecipesRecipeIdRoute
 }
@@ -117,6 +132,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/items': typeof ItemsRouteWithChildren
+  '/power': typeof PowerRoute
   '/items/$itemId/recipeType/$recipeType': typeof ItemsItemIdRecipeTypeRecipeTypeRouteWithChildren
   '/items/$itemId/recipeType/$recipeType/recipes/$recipeId': typeof ItemsItemIdRecipeTypeRecipeTypeRecipesRecipeIdRoute
 }
@@ -125,6 +141,7 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/items': typeof ItemsRouteWithChildren
+  '/power': typeof PowerRoute
   '/items/$itemId/recipeType/$recipeType': typeof ItemsItemIdRecipeTypeRecipeTypeRouteWithChildren
   '/items/$itemId/recipeType/$recipeType/recipes/$recipeId': typeof ItemsItemIdRecipeTypeRecipeTypeRecipesRecipeIdRoute
 }
@@ -134,18 +151,21 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/items'
+    | '/power'
     | '/items/$itemId/recipeType/$recipeType'
     | '/items/$itemId/recipeType/$recipeType/recipes/$recipeId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/items'
+    | '/power'
     | '/items/$itemId/recipeType/$recipeType'
     | '/items/$itemId/recipeType/$recipeType/recipes/$recipeId'
   id:
     | '__root__'
     | '/'
     | '/items'
+    | '/power'
     | '/items/$itemId/recipeType/$recipeType'
     | '/items/$itemId/recipeType/$recipeType/recipes/$recipeId'
   fileRoutesById: FileRoutesById
@@ -154,11 +174,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ItemsRoute: typeof ItemsRouteWithChildren
+  PowerRoute: typeof PowerRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ItemsRoute: ItemsRouteWithChildren,
+  PowerRoute: PowerRoute,
 }
 
 export const routeTree = rootRoute
@@ -172,7 +194,8 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/items"
+        "/items",
+        "/power"
       ]
     },
     "/": {
@@ -183,6 +206,9 @@ export const routeTree = rootRoute
       "children": [
         "/items/$itemId/recipeType/$recipeType"
       ]
+    },
+    "/power": {
+      "filePath": "power.tsx"
     },
     "/items/$itemId/recipeType/$recipeType": {
       "filePath": "items.$itemId.recipeType/$recipeType.tsx",
