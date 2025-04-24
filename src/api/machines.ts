@@ -1,6 +1,12 @@
 ﻿import { IMachine } from "@/types.ts";
 
 export const machines = [{
+	image: "portableMiner.png",
+	id: "portableMiner",
+	powerType: "consumes",
+	name: "Portable Miner",
+	basePower: 0,
+}, {
 	image: "coalPoweredGenerator.png",
 	powerType: "produces",
 	name: "Coal-Powered Generator",
@@ -142,12 +148,6 @@ export const machines = [{
 	name: "Smelter",
 	id: "smelter",
 	basePower: 4,
-}, {
-	image: "minerPortable.png",
-	powerType: "consumes",
-	name: "Miner Portable",
-	id: "minerPortable",
-	basePower: 0,
 }] as const satisfies IMachine[];
 
 machines.sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
