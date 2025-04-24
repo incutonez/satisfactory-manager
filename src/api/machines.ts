@@ -79,6 +79,12 @@ export const machines = [{
 	id: "blender",
 	basePower: 75,
 }, {
+	image: "nuclearPowerGenerator.png",
+	powerType: "produces",
+	name: "Nuclear Power Plant",
+	id: "nuclearPowerGenerator",
+	basePower: 2500,
+}, {
 	image: "resourceWellExtractor.png",
 	powerType: "consumes",
 	name: "Resource Well Extractor",
@@ -96,6 +102,14 @@ export const machines = [{
 	name: "Fuel-Powered Generator",
 	id: "fuelPoweredGenerator",
 	basePower: 250,
+}, {
+	/* This one gets a little complicated... it generates 500, but then has a multiplier of 10% of the grid's power, up to 30%
+	 * Source: https://satisfactory.wiki.gg/wiki/Alien_Power_Augmenter#Usage */
+	image: "alienPowerGenerator.png",
+	powerType: "produces",
+	name: "Alien Power Augmenter",
+	id: "alienPowerGenerator",
+	basePower: 500,
 }, {
 	// Can have impure, normal, and pure nodeTypes
 	image: "geothermalGenerator.png",
