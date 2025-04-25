@@ -132,7 +132,7 @@ export function AppHeader() {
 				<section className="ml-auto flex space-x-2">
 					<FieldText
 						value={search}
-						setter={onSetSearch}
+						onChange={onSetSearch}
 						label="Search"
 						placeholder="Search..."
 					/>

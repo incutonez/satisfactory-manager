@@ -1,4 +1,5 @@
-﻿import { TNodeType } from "@/api/data.ts";
+﻿import { Ref } from "react";
+import { TNodeType } from "@/api/data.ts";
 import { TMachine } from "@/api/machines.ts";
 import { TRecipe } from "@/api/recipes.ts";
 
@@ -61,6 +62,11 @@ export interface IInventoryRecipe {
 	items: IRecipeItem[];
 	producedIn: TMachine;
 	nodeType?: TNodeType;
+}
+
+// Aria components don't have ref in their interfaces, so this is what my wrapped components extend from
+export interface IBaseComponent<T> {
+	ref?: Ref<T>;
 }
 
 export interface IRecipe {

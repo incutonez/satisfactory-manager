@@ -1,9 +1,9 @@
-﻿import { ChangeEvent, useRef, useState } from "react";
+﻿import { useState } from "react";
 import { importInventoryThunk } from "@/api/inventory.ts";
 import { BaseButton } from "@/components/BaseButton.tsx";
 import { BaseDialog, IBaseDialog } from "@/components/BaseDialog.tsx";
 import { FieldDisplay } from "@/components/FieldDisplay.tsx";
-import { FieldText } from "@/components/FieldText.tsx";
+import { FieldFile } from "@/components/FieldFile.tsx";
 import { IconSave } from "@/components/Icons.tsx";
 import { useAppDispatch } from "@/store.ts";
 import { IInventoryItem } from "@/types.ts";
@@ -11,7 +11,6 @@ import { IInventoryItem } from "@/types.ts";
 export function ViewImport({ ...props }: IBaseDialog) {
 	const dispatch = useAppDispatch();
 	const [value, setValue] = useState<File>();
-	const fileInputRef = useRef<HTMLInputElement>(null);
 	const footerSlot = (
 		<BaseButton
 			icon={IconSave}
@@ -33,12 +32,10 @@ export function ViewImport({ ...props }: IBaseDialog) {
 		}
 	}
 
-	function onFileChange({ target }: ChangeEvent<HTMLInputElement>) {
-		setValue(target.files?.[0]);
-	}
-
-	function onClickSelectFile() {
-		fileInputRef.current?.click();
+	function onSelectFile(files: FileList | null) {
+		if (files) {
+			setValue(files[0]);
+		}
 	}
 
 	return (
@@ -49,20 +46,7 @@ export function ViewImport({ ...props }: IBaseDialog) {
 			bodyCls="space-y-2"
 			{...props}
 		>
-			<BaseButton
-				className="relative"
-				onClick={onClickSelectFile}
-			>
-				<FieldText
-					ref={fileInputRef}
-					hidden={true}
-					setter={setValue}
-					type="file"
-					className="size-full absolute"
-					onChange={onFileChange}
-				/>
-				<span>Select File...</span>
-			</BaseButton>
+			<FieldFile onSelect={onSelectFile} />
 			<FieldDisplay
 				value={value?.name}
 				label="Selected"

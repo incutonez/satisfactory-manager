@@ -139,30 +139,35 @@ export function ViewRecipeItems({ record, recipeId, nodeTypeMultiplier, setSelec
 				<section className="flex flex-col space-y-2">
 					<FieldNumber
 						label="Overclock %"
-						min={0}
-						max={250}
-						inputWidth="w-16"
+						defaultValue={100}
+						minValue={0}
+						maxValue={250}
 						labelCls="w-26"
-						setter={(value = 100) => setOverclock(value)}
+						inputWidth="w-16"
+						onChange={setOverclock}
 						value={overclock}
 					/>
 					<FieldNumber
 						label="Somersloop"
-						min={0}
-						max={4}
-						inputWidth="w-16"
+						defaultValue={0}
+						step={0.01}
+						minValue={0}
+						maxValue={1}
+						isRequired={true}
 						labelCls="w-26"
-						setter={(value = 0) => setSomersloop(value)}
+						inputWidth="w-16"
 						value={somersloop}
+						onChange={setSomersloop}
 					/>
 				</section>
 				<section className="flex flex-col space-y-2">
 					<FieldNumber
 						label="Machines"
-						min={1}
-						inputWidth="w-21"
+						defaultValue={1}
+						minValue={1}
 						labelCls="w-21"
-						setter={(value = 1) => setMachineCount(value)}
+						inputWidth="w-21"
+						onChange={setMachineCount}
 						value={machineCount}
 					/>
 					{nodeTypeNode}

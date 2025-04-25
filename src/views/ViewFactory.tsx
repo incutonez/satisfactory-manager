@@ -62,7 +62,7 @@ export function ViewFactory({ isEdit, factoryName = "", setShow, ...props }: IVi
 					label="Name"
 					autoFocus={true}
 					value={name}
-					setter={setName}
+					onChange={setName}
 					onEnter={onEnterFactory}
 				/>
 			</article>

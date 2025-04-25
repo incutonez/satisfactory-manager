@@ -98,6 +98,7 @@ export const inventorySlice = createSlice({
 		},
 		importInventory(state, { payload }: PayloadAction<IInventoryItem[]>) {
 			state.inventory = payload;
+			state.inventoryDraft = state.inventory;
 		},
 	},
 	selectors: {

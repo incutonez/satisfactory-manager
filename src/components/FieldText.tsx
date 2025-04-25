@@ -1,48 +1,28 @@
-﻿import { ChangeEvent, ComponentProps, KeyboardEvent, ReactNode, useRef } from "react";
-import classNames from "classnames";
+﻿import { KeyboardEvent, ReactNode } from "react";
+import { TextField as AriaTextField, TextFieldProps as IAriaTextField } from "react-aria-components";
+import { BaseField } from "@/components/BaseField.tsx";
 import { FieldLabel } from "@/components/FieldLabel.tsx";
-import { TSetTimeout } from "@/types.ts";
-import { emptyFn } from "@/utils/common.ts";
 
-export interface IFieldText<T = string> extends ComponentProps<"input"> {
-	setter: (value?: T) => void;
-	placeholder?: string;
+export interface IFieldText extends IAriaTextField {
 	label?: string;
-	typeDelay?: number;
-	inputCls?: string;
-	inputWidth?: string;
 	labelCls?: string;
 	labelPosition?: "top" | "left";
-	onEnter?: (value: T) => void;
-	onInputChange?: (value: string) => void;
+	inputCls?: string;
+	inputWidth?: string;
+	wrapperCls?: string;
+	placeholder?: string;
+	onEnter?: (value: string | undefined) => void;
 }
 
-export function FieldText<T = string>({ value, className = "", autoFocus, onEnter, labelCls, labelPosition = "left", inputCls, inputWidth = "w-auto", type = "text", setter, label, onBlur = emptyFn, typeDelay = 250, onInputChange, placeholder, ...props }: IFieldText<T>) {
+export function FieldText({ className, inputWidth, placeholder, onEnter, inputCls, labelCls, labelPosition = "left", label, ...props }: IFieldText) {
 	let labelEl: ReactNode;
-	const typeDelayTimer = useRef<TSetTimeout>(undefined);
 	const cls = ["flex", className];
-	inputCls = classNames("appearance-none rounded-md h-8 py-1 px-2 outline-none text-sm ring-1 ring-inset ring-offset-0 ring-gray-500 enabled:focus:ring-sky-600 bg-white text-gray-800 disabled:bg-gray-200 disabled:opacity-100 placeholder:text-gray-500", inputWidth);
 
 	if (labelPosition === "top") {
 		cls.push("flex-col");
 	}
 	else {
 		cls.push("space-x-1 items-center");
-	}
-
-	function onChange({ target }: ChangeEvent<HTMLInputElement>) {
-		const { value } = target;
-		setter(value as T);
-		if (onInputChange) {
-			clearTimeout(typeDelayTimer.current);
-			typeDelayTimer.current = setTimeout(() => onInputChange(value), typeDelay);
-		}
-	}
-
-	function onKeyDown({ key }: KeyboardEvent<HTMLInputElement>) {
-		if (key === "Enter" && onEnter) {
-			onEnter(value as T);
-		}
 	}
 
 	if (label) {
@@ -53,20 +33,25 @@ export function FieldText<T = string>({ value, className = "", autoFocus, onEnte
 			/>
 		);
 	}
+
+	function onKeyDown({ key }: KeyboardEvent<HTMLInputElement>) {
+		if (key === "Enter" && onEnter) {
+			onEnter(props.value);
+		}
+	}
+
 	return (
-		<article className={cls.join(" ")}>
+		<AriaTextField
+			className={cls.join(" ")}
+			onKeyDown={onKeyDown}
+			{...props}
+		>
 			{labelEl}
-			<input
-				autoFocus={autoFocus}
-				type={type}
+			<BaseField
+				inputWidth={inputWidth}
 				className={inputCls}
-				value={value}
 				placeholder={placeholder}
-				onChange={onChange}
-				onKeyDown={onKeyDown}
-				onBlur={onBlur}
-				{...props}
 			/>
-		</article>
+		</AriaTextField>
 	);
 }

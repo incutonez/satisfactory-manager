@@ -1,4 +1,5 @@
-﻿import justCapitalize from "just-capitalize";
+﻿import { Ref } from "react";
+import justCapitalize from "just-capitalize";
 import { pow, round } from "mathjs";
 import MimeTypes from "mime-types";
 import { ICalculateAmountDisplays, IInventoryRecipe, IMachinePower, TItemKey, TRecipeType } from "@/types.ts";
@@ -75,4 +76,15 @@ export function calculateMachinePower({ overclock, machineCount, somersloop, bas
 	overclock = round(pow(overclock / 100, 1.321928) as number, 2);
 	somersloop = pow(1 + somersloop, 2) as number;
 	return basePower * somersloop * overclock * machineCount;
+}
+
+export function setRef<T>(ref: Ref<T> | undefined, el: T) {
+	if (ref) {
+		if (typeof ref === "function") {
+			ref(el);
+		}
+		else {
+			ref.current = el;
+		}
+	}
 }
