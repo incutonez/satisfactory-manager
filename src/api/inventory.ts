@@ -1,4 +1,5 @@
-﻿import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
+﻿import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { round } from "mathjs";
 import { getActiveFactory, IFactory, loadFactoryInventoryThunk } from "@/api/factories.ts";
 import defaultInventory from "@/api/inventory.json";
 import { AppThunk } from "@/store.ts";
@@ -16,12 +17,17 @@ export interface IState {
 	 * then either gets reset to inventory upon cancel in ViewInventoryItem or if saved, inventory becomes inventoryDraft
 	 */
 	inventoryDraft: IInventoryItem[];
+	// This is derived from inventoryDraft
+	powerItems: IInventoryRecipe[];
+	totalPowerConsumption: number;
 }
 
 const initialState: IState = {
 	inventory: [],
 	inventoryId: "",
 	inventoryDraft: [],
+	powerItems: [],
+	totalPowerConsumption: 0,
 };
 
 export const inventorySlice = createSlice({
@@ -100,6 +106,10 @@ export const inventorySlice = createSlice({
 			state.inventory = payload;
 			state.inventoryDraft = state.inventory;
 		},
+		setPower(state, { payload }: PayloadAction<{data: IInventoryRecipe[], total: number}>) {
+			state.powerItems = payload.data;
+			state.totalPowerConsumption = payload.total;
+		},
 	},
 	selectors: {
 		getInventory(state) {
@@ -108,37 +118,21 @@ export const inventorySlice = createSlice({
 		getInventoryDraft(state) {
 			return state.inventoryDraft;
 		},
+		getPowerItems(state) {
+			return state.powerItems;
+		},
+		getPowerConsumption(state) {
+			return state.totalPowerConsumption;
+		},
 		getInventoryItem(state, itemId: string) {
 			return findInventoryItemById(state.inventoryDraft, itemId);
 		},
 	},
 });
 
-export const { resetDraftInventory, updateDraftInventory, importInventory, deleteInventory, addRecipe, updateRecipe, deleteRecipe, loadInventory, saveInventory } = inventorySlice.actions;
+export const { setPower, resetDraftInventory, updateDraftInventory, importInventory, deleteInventory, addRecipe, updateRecipe, deleteRecipe, loadInventory, saveInventory } = inventorySlice.actions;
 
-export const { getInventoryDraft, getInventory, getInventoryItem } = inventorySlice.selectors;
-
-export const getInventoryRecipes = createSelector(getInventory, (inventory) => {
-	const outputRecipes: IInventoryRecipe[] = [];
-	inventory.forEach(({ recipes }) => {
-		for (const recipe of recipes) {
-			const found = outputRecipes.find((record) => record.id === recipe.id);
-			if (found) {
-				continue;
-			}
-			outputRecipes.push({
-				...recipe,
-				powerConsumption: calculateMachinePower({
-					basePower: recipe.basePower,
-					somersloop: recipe.somersloopValue,
-					overclock: recipe.overclockValue,
-					machineCount: recipe.machineCount,
-				}),
-			});
-		}
-	});
-	return outputRecipes;
-});
+export const { getPowerConsumption, getPowerItems, getInventoryDraft, getInventory, getInventoryItem } = inventorySlice.selectors;
 
 export function findInventoryItemById(inventory: IInventoryItem[], itemId: string) {
 	return inventory.find(({ id }) => id === itemId);
@@ -165,6 +159,37 @@ export function importInventoryThunk(inventory: IInventoryItem[]): AppThunk {
 	return function thunk(dispatch) {
 		dispatch(importInventory(inventory));
 		dispatch(saveInventory(false));
+	};
+}
+
+export function loadPowerThunk(): AppThunk {
+	return function thunk(dispatch, getState) {
+		const inventory = getInventoryDraft(getState());
+		const outputRecipes: IInventoryRecipe[] = [];
+		let totalConsumption = 0;
+		inventory.forEach(({ recipes }) => {
+			for (const recipe of recipes) {
+				const found = outputRecipes.find((record) => record.id === recipe.id);
+				if (found) {
+					continue;
+				}
+				const powerConsumption = calculateMachinePower({
+					basePower: recipe.basePower,
+					somersloop: recipe.somersloopValue,
+					overclock: recipe.overclockValue,
+					machineCount: recipe.machineCount,
+				});
+				totalConsumption += powerConsumption;
+				outputRecipes.push({
+					...recipe,
+					powerConsumption,
+				});
+			}
+		});
+		dispatch(setPower({
+			data: outputRecipes,
+			total: round(totalConsumption, 2),
+		}));
 	};
 }
 

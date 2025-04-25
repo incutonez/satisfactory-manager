@@ -7,16 +7,18 @@ import {
 	getSortedRowModel, SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
-import { round } from "mathjs";
-import { getInventoryRecipes } from "@/api/inventory.ts";
+import { getPowerConsumption, getPowerItems } from "@/api/inventory.ts";
 import { TableData } from "@/components/TableData.tsx";
 import { useAppSelector } from "@/store.ts";
 import { IInventoryRecipe } from "@/types.ts";
 
 const columnHelper = createColumnHelper<IInventoryRecipe>();
 
+// TODOJEF: PICK UP HERE... need to add ability to set power machines
+// Also need to add editing the recipes inline, maybe?
 export function ViewFactoryPower() {
-	const data = useAppSelector(getInventoryRecipes);
+	const data = useAppSelector(getPowerItems);
+	const totalPowerConsumption = useAppSelector(getPowerConsumption);
 	const [columns, setColumns] = useState<ColumnDef<IInventoryRecipe>[]>([]);
 	const [globalFilter, setGlobalFilter] = useState<string>();
 	const [sorting, setSorting] = useState<SortingState>([]);
@@ -68,7 +70,7 @@ export function ViewFactoryPower() {
 					columnWidth: "min-w-auto",
 				},
 				footer() {
-					return round(data.reduce((total, item) => total + (item.powerConsumption ?? 0), 0), 2);
+					return totalPowerConsumption;
 				},
 			}),
 		] as ColumnDef<IInventoryRecipe>[]);
@@ -76,7 +78,7 @@ export function ViewFactoryPower() {
 			id: "recipeName",
 			desc: false,
 		}]);
-	}, [data]);
+	}, [data, totalPowerConsumption]);
 
 	return (
 		<TableData

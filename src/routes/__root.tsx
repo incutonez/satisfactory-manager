@@ -1,8 +1,7 @@
-﻿import { useCallback, useEffect } from "react";
+﻿import { useEffect } from "react";
 import { Provider } from "react-redux";
 import { createRootRoute } from "@tanstack/react-router";
-import { getActiveFactory, loadFactoriesThunk } from "@/api/factories.ts";
-import { loadInventory } from "@/api/inventory.ts";
+import { getActiveFactory, loadFactoriesThunk, loadFactoryInventoryThunk } from "@/api/factories.ts";
 import { store, useAppDispatch, useAppSelector } from "@/store.ts";
 import { ViewMain } from "@/views/ViewMain.tsx";
 
@@ -13,11 +12,6 @@ export const Route = createRootRoute({
 function RootComponent() {
 	const dispatch = useAppDispatch();
 	const activeFactory = useAppSelector(getActiveFactory);
-	const reloadInventory = useCallback(() => {
-		if (activeFactory) {
-			dispatch(loadInventory(activeFactory));
-		}
-	}, [dispatch, activeFactory]);
 
 	useEffect(() => {
 		dispatch(loadFactoriesThunk());
@@ -25,9 +19,9 @@ function RootComponent() {
 
 	useEffect(() => {
 		if (activeFactory) {
-			reloadInventory();
+			dispatch(loadFactoryInventoryThunk());
 		}
-	}, [activeFactory, reloadInventory]);
+	}, [activeFactory, dispatch]);
 
 	return (
 		<>

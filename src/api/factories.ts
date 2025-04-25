@@ -1,5 +1,5 @@
 ﻿import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { deleteInventory, loadInventory } from "@/api/inventory.ts";
+import { deleteInventory, loadInventory, loadPowerThunk } from "@/api/inventory.ts";
 import { AppThunk } from "@/store.ts";
 import { uuid } from "@/utils/common.ts";
 
@@ -109,6 +109,7 @@ export function loadFactoryInventoryThunk(factory?: IFactory): AppThunk {
 		factory ??= getActiveFactory(getState());
 		if (factory) {
 			dispatch(loadInventory(factory));
+			dispatch(loadPowerThunk());
 		}
 	};
 }
