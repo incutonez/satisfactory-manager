@@ -11,11 +11,12 @@ import { getPowerConsumption, getPowerItems } from "@/api/inventory.ts";
 import { TableData } from "@/components/TableData.tsx";
 import { useAppSelector } from "@/store.ts";
 import { IInventoryRecipe } from "@/types.ts";
+import { formatNumber } from "@/utils/common.ts";
 
 const columnHelper = createColumnHelper<IInventoryRecipe>();
 
 // TODOJEF: PICK UP HERE... need to add ability to set power machines
-// Also need to add editing the recipes inline, maybe?
+// Also need to add editing the recipes inline, maybe? */
 export function ViewFactoryPower() {
 	const data = useAppSelector(getPowerItems);
 	const totalPowerConsumption = useAppSelector(getPowerConsumption);
@@ -66,11 +67,13 @@ export function ViewFactoryPower() {
 			columnHelper.accessor("powerConsumption", {
 				header: "MW Consumed",
 				meta: {
-					cellCls: "text-center",
+					cellCls: "text-right",
 					columnWidth: "min-w-auto",
+					footerCls: () => "text-right",
 				},
+				cell: (info) => formatNumber(info.getValue() ?? 0, "MW"),
 				footer() {
-					return totalPowerConsumption;
+					return formatNumber(totalPowerConsumption, "MW");
 				},
 			}),
 		] as ColumnDef<IInventoryRecipe>[]);

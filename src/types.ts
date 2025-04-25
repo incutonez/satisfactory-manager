@@ -117,3 +117,9 @@ export interface IMachinePower {
 	machineCount: number;
 	basePower: number;
 }
+
+export interface ISetPower {
+	data: IInventoryRecipe[];
+	totalPower: number;
+	totalPowerConsumption: number;
+}

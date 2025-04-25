@@ -72,7 +72,6 @@ export function downloadFile(blob: Blob, name = "download", extension = MimeType
 }
 
 export function calculateMachinePower({ overclock, machineCount, somersloop, basePower }: IMachinePower) {
-	// const basePower = machines.find(({ id }) => id === machineId)?.basePower ?? 1;
 	overclock = round(pow(overclock / 100, 1.321928) as number, 2);
 	somersloop = pow(1 + somersloop, 2) as number;
 	return basePower * somersloop * overclock * machineCount;
@@ -87,4 +86,12 @@ export function setRef<T>(ref: Ref<T> | undefined, el: T) {
 			ref.current = el;
 		}
 	}
+}
+
+export function formatNumber(value: number, unit?: string) {
+	let response = new Intl.NumberFormat("en-US").format(value);
+	if (unit) {
+		response += ` ${unit}`;
+	}
+	return response;
 }

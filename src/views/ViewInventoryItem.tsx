@@ -2,7 +2,7 @@
 import { Outlet, useNavigate, useParams } from "@tanstack/react-router";
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from "@tanstack/react-table";
 import { deleteItemThunk, getActiveItem, getActiveItemRecipes } from "@/api/activeItem.ts";
-import { resetDraftInventory, saveInventoryThunk } from "@/api/inventory.ts";
+import { resetInventoryDraftThunk, saveInventoryThunk } from "@/api/inventory.ts";
 import { BaseButton } from "@/components/BaseButton.tsx";
 import { BaseDialog, IBaseDialog } from "@/components/BaseDialog.tsx";
 import { IconAdd, IconDelete, IconEdit, IconSave } from "@/components/Icons.tsx";
@@ -53,7 +53,7 @@ export function ViewInventoryItem({ show }: IViewItem) {
 
 	function setShow(show: boolean) {
 		if (!show) {
-			dispatch(resetDraftInventory());
+			dispatch(resetInventoryDraftThunk());
 			viewInventory();
 		}
 	}

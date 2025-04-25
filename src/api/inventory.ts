@@ -3,7 +3,7 @@ import { round } from "mathjs";
 import { getActiveFactory, IFactory, loadFactoryInventoryThunk } from "@/api/factories.ts";
 import defaultInventory from "@/api/inventory.json";
 import { AppThunk } from "@/store.ts";
-import { IInventoryItem, IInventoryRecipe } from "@/types.ts";
+import { IInventoryItem, IInventoryRecipe, ISetPower } from "@/types.ts";
 import { calculateMachinePower, clone, downloadFile, sumRecipes } from "@/utils/common.ts";
 
 export const inventoryItems = defaultInventory as IInventoryItem[];
@@ -19,6 +19,7 @@ export interface IState {
 	inventoryDraft: IInventoryItem[];
 	// This is derived from inventoryDraft
 	powerItems: IInventoryRecipe[];
+	totalPower: number;
 	totalPowerConsumption: number;
 }
 
@@ -27,6 +28,7 @@ const initialState: IState = {
 	inventoryId: "",
 	inventoryDraft: [],
 	powerItems: [],
+	totalPower: 0,
 	totalPowerConsumption: 0,
 };
 
@@ -106,9 +108,10 @@ export const inventorySlice = createSlice({
 			state.inventory = payload;
 			state.inventoryDraft = state.inventory;
 		},
-		setPower(state, { payload }: PayloadAction<{data: IInventoryRecipe[], total: number}>) {
+		setPower(state, { payload }: PayloadAction<ISetPower>) {
 			state.powerItems = payload.data;
-			state.totalPowerConsumption = payload.total;
+			state.totalPower = payload.totalPower;
+			state.totalPowerConsumption = payload.totalPowerConsumption;
 		},
 	},
 	selectors: {
@@ -121,6 +124,9 @@ export const inventorySlice = createSlice({
 		getPowerItems(state) {
 			return state.powerItems;
 		},
+		getPowerTotal(state) {
+			return state.totalPower;
+		},
 		getPowerConsumption(state) {
 			return state.totalPowerConsumption;
 		},
@@ -132,7 +138,7 @@ export const inventorySlice = createSlice({
 
 export const { setPower, resetDraftInventory, updateDraftInventory, importInventory, deleteInventory, addRecipe, updateRecipe, deleteRecipe, loadInventory, saveInventory } = inventorySlice.actions;
 
-export const { getPowerConsumption, getPowerItems, getInventoryDraft, getInventory, getInventoryItem } = inventorySlice.selectors;
+export const { getPowerTotal, getPowerConsumption, getPowerItems, getInventoryDraft, getInventory, getInventoryItem } = inventorySlice.selectors;
 
 export function findInventoryItemById(inventory: IInventoryItem[], itemId: string) {
 	return inventory.find(({ id }) => id === itemId);
@@ -145,6 +151,13 @@ export function downloadInventory(): AppThunk {
 		downloadFile(new Blob([JSON.stringify(inventory)], {
 			type: "application/json",
 		}), factoryName);
+	};
+}
+
+export function resetInventoryDraftThunk(): AppThunk {
+	return function thunk(dispatch) {
+		dispatch(resetDraftInventory());
+		dispatch(loadPowerThunk());
 	};
 }
 
@@ -188,7 +201,9 @@ export function loadPowerThunk(): AppThunk {
 		});
 		dispatch(setPower({
 			data: outputRecipes,
-			total: round(totalConsumption, 2),
+			// TODOJEF: Need to set this
+			totalPower: 0,
+			totalPowerConsumption: round(totalConsumption, 2),
 		}));
 	};
 }
@@ -222,6 +237,7 @@ export function updateRecipesThunk(updateRecord: IInventoryItem): AppThunk {
 			}
 		}
 		dispatch(updateDraftInventory());
+		dispatch(loadPowerThunk());
 	};
 }
 

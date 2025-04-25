@@ -95,6 +95,7 @@ export function loadItemThunk(itemId: string): AppThunk {
 
 interface ISaveItemThunk {
 	recipeRecord: IRecipe;
+	basePower: number;
 	activeItemRecipe?: IInventoryRecipe;
 	machineCount: number;
 	somersloop: number;
@@ -104,13 +105,13 @@ interface ISaveItemThunk {
 	nodeType?: TNodeType;
 }
 
-export function saveItemThunk({ recipeRecord, nodeType, machineId, activeItemRecipe, machineCount, overclock, somersloop, nodeTypeMultiplier }: ISaveItemThunk): AppThunk {
+export function saveItemThunk({ recipeRecord, basePower, nodeType, machineId, activeItemRecipe, machineCount, overclock, somersloop, nodeTypeMultiplier }: ISaveItemThunk): AppThunk {
 	return function thunk(dispatch, getState) {
 		dispatch(updateItemRecipe({
 			nodeTypeMultiplier,
 			machineCount,
 			nodeType,
-			basePower: recipeRecord.basePower,
+			basePower,
 			recipeId: recipeRecord.id as TRecipe,
 			recipeName: recipeRecord.name,
 			cyclesPerMinute: recipeRecord.cyclesPerMinute,

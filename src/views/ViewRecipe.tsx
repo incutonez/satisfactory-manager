@@ -2,7 +2,8 @@
 import { useNavigate } from "@tanstack/react-router";
 import { getActiveItemRecipe, saveItemThunk } from "@/api/activeItem.ts";
 import { Miners, NodeTypes, TNodeType } from "@/api/data.ts";
-import { TMachine } from "@/api/machines.ts";
+import { getPowerConsumption, getPowerTotal } from "@/api/inventory.ts";
+import { machines, TMachine } from "@/api/machines.ts";
 import { recipes } from "@/api/recipes.ts";
 import { BaseButton, IBaseButton } from "@/components/BaseButton.tsx";
 import { BaseDialog, IBaseDialog } from "@/components/BaseDialog.tsx";
@@ -13,7 +14,7 @@ import { IconSave } from "@/components/Icons.tsx";
 import { RouteViewItem } from "@/routes.ts";
 import { useAppDispatch, useAppSelector } from "@/store.ts";
 import { INodeType, IRecipe, TItemKey, TRecipeType } from "@/types.ts";
-import { calculateSomersloop } from "@/utils/common.ts";
+import { calculateMachinePower, calculateSomersloop, formatNumber } from "@/utils/common.ts";
 import { RecipeItems } from "@/views/recipe/RecipeItems.tsx";
 import { RecipeMachine } from "@/views/shared/CellItem.tsx";
 
@@ -43,6 +44,7 @@ export interface IViewRecipeItems {
 	machineId?: TMachine;
 	setMachineId: Dispatch<SetStateAction<TMachine | undefined>>;
 	nodeTypeMultiplier: number;
+	basePower: number;
 }
 
 export function ViewRecipeSave({ record, ...props }: IViewRecipeSave) {
@@ -56,8 +58,30 @@ export function ViewRecipeSave({ record, ...props }: IViewRecipeSave) {
 	);
 }
 
-export function ViewRecipeItems({ record, recipeId, nodeTypeMultiplier, setSelectedNodeType, setNodeType, setMachineId, machineId, nodeType, overclock, setOverclock, somersloop, setSomersloop, machineCount, setMachineCount, itemId }: IViewRecipeItems) {
+export function ViewRecipeItems({ record, basePower, recipeId, nodeTypeMultiplier, setSelectedNodeType, setNodeType, setMachineId, machineId, nodeType, overclock, setOverclock, somersloop, setSomersloop, machineCount, setMachineCount, itemId }: IViewRecipeItems) {
 	const overclockValue = useMemo(() => overclock / 100, [overclock]);
+	const totalPower = useAppSelector(getPowerTotal);
+	const currentConsumption = useAppSelector(getPowerConsumption);
+	const activeItemRecipe = useAppSelector((state) => getActiveItemRecipe(state, recipeId));
+	const currentConsumptionAdjusted = useMemo(() => currentConsumption - calculateMachinePower({
+		somersloop: activeItemRecipe?.somersloopValue ?? 0,
+		overclock: activeItemRecipe?.overclockValue ?? 100,
+		machineCount: activeItemRecipe?.machineCount ?? 1,
+		basePower: activeItemRecipe?.basePower ?? 0,
+	}), [
+		activeItemRecipe?.somersloopValue,
+		activeItemRecipe?.overclockValue,
+		activeItemRecipe?.machineCount,
+		currentConsumption,
+		activeItemRecipe?.basePower,
+	]);
+	const recipePower = useMemo(() => calculateMachinePower({
+		somersloop,
+		overclock,
+		machineCount,
+		basePower,
+	}), [somersloop, overclock, machineCount, basePower]);
+	const remainingPower = useMemo(() => totalPower - currentConsumptionAdjusted - recipePower, [totalPower, currentConsumptionAdjusted, recipePower]);
 
 	if (!record) {
 		return;
@@ -172,6 +196,40 @@ export function ViewRecipeItems({ record, recipeId, nodeTypeMultiplier, setSelec
 					/>
 					{nodeTypeNode}
 				</section>
+				<section className="flex flex-col space-y-2 ml-auto">
+					<table className="border-collapse">
+						<tbody>
+							<tr>
+								<td className="py-1 px-2 text-right">Total Power</td>
+								<td className="py-1 px-2 text-right">
+									{formatNumber(totalPower, "MW")}
+								</td>
+							</tr>
+							<tr>
+								<td className="py-1 px-2 text-right">Current Consumption</td>
+								<td className="py-1 px-2 text-right">
+									-
+									{" "}
+									{formatNumber(currentConsumptionAdjusted, "MW")}
+								</td>
+							</tr>
+							<tr>
+								<td className="py-1 px-2 text-right border-b">Recipe Consumption</td>
+								<td className="py-1 px-2 text-right border-b">
+									-
+									{" "}
+									{formatNumber(recipePower, "MW")}
+								</td>
+							</tr>
+							<tr>
+								<td className="py-1 px-2 text-right">Remaining Power</td>
+								<td className="py-1 px-2 text-right">
+									{formatNumber(remainingPower, "MW")}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</section>
 			</section>
 			<section className="flex items-center justify-center space-x-4 flex-1">
 				{machineNode}
@@ -204,6 +262,16 @@ export function ViewRecipe({ recipeId, recipeType, itemId, show }: IViewRecipe) 
 	const [machineId, setMachineId] = useState<TMachine>();
 	const [nodeType, setNodeType] = useState<TNodeType | undefined>();
 	const [selectedNodeType, setSelectedNodeType] = useState<INodeType>();
+	const basePower = useMemo(() => {
+		let basePower = recipeRecord?.basePower ?? 0;
+		if (recipeRecord?.isRaw && machineId) {
+			const found = machines.find(({ id }) => id === machineId)?.basePower;
+			if (found) {
+				basePower = found;
+			}
+		}
+		return basePower;
+	}, [machineId, recipeRecord?.basePower, recipeRecord?.isRaw]);
 	const footerNode = (
 		<ViewRecipeSave
 			record={recipeRecord}
@@ -244,7 +312,7 @@ export function ViewRecipe({ recipeId, recipeType, itemId, show }: IViewRecipe) 
 	function onClickSave() {
 		if (recipeRecord) {
 			dispatch(saveItemThunk({
-				machineId: machineId ?? recipeRecord.producedIn,
+				basePower,
 				nodeType,
 				machineCount,
 				recipeRecord,
@@ -252,6 +320,7 @@ export function ViewRecipe({ recipeId, recipeType, itemId, show }: IViewRecipe) 
 				overclock,
 				somersloop,
 				nodeTypeMultiplier,
+				machineId: machineId ?? recipeRecord.producedIn,
 			}));
 			viewItem();
 		}
@@ -321,6 +390,7 @@ export function ViewRecipe({ recipeId, recipeType, itemId, show }: IViewRecipe) 
 					setNodeType={setNodeType}
 					setSelectedNodeType={setSelectedNodeType}
 					nodeTypeMultiplier={nodeTypeMultiplier}
+					basePower={basePower}
 				/>
 			</article>
 		</BaseDialog>
