@@ -1,3 +1,13 @@
+## [2.0.0](https://github.com/incutonez/satisfactory-manager/compare/v1.2.1...v2.0.0) (2025-04-26)
+
+### ⚠ BREAKING CHANGES
+
+* Adding Power Management (#15)
+
+### Features
+
+* Adding Power Management ([#15](https://github.com/incutonez/satisfactory-manager/issues/15)) ([8d2ed00](https://github.com/incutonez/satisfactory-manager/commit/8d2ed009453b5a32418c4099bb369545d37c2d4d))
+
 ## [1.2.1](https://github.com/incutonez/satisfactory-manager/compare/v1.2.0...v1.2.1) (2025-04-22)
 
 ### Bug Fixes
