@@ -51,7 +51,7 @@ export function BaseButton({ children, plain, ref, title, text, color = "bg-slat
 		color = "";
 	}
 	const hiddenCls = hidden ? "hidden" : "";
-	const disabledCls = attrs.isDisabled ? "opacity-70 cursor-not-allowed" : "cursor-pointer";
+	const disabledCls = attrs.isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer";
 	const buttonCls = classNames("flex items-center rounded space-x-1", color, hiddenCls, size, disabledCls, textNode ? "px-2" : "px-1", className);
 
 	function onRef(el: HTMLButtonElement) {

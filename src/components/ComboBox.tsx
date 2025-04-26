@@ -19,7 +19,7 @@ export interface IComboBox<TOption extends object, TKey = keyof TOption, TValue 
 	options: TOption[];
 	valueField?: TKey;
 	displayField?: TKey;
-	setValue?: Dispatch<SetStateAction<TValue | undefined>> | ((value?: TValue) => void);
+	setValue?: Dispatch<SetStateAction<TValue>> | ((value: TValue) => void);
 	setSelection?: (value?: TOption) => void;
 	label?: string;
 	children?: ReactNode | ((item: TOption) => ReactNode);
@@ -51,7 +51,7 @@ export function ComboBox<TOption extends object, TValue = unknown, TKey = keyof 
 		);
 	};
 
-	function onSelectionChange(key: Key | null) {
+	function onSelectionChange(key: Key | null = "") {
 		if (setValue) {
 			setValue(key as TValue);
 		}

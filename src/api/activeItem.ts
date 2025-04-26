@@ -10,14 +10,20 @@ import { calculateAmountDisplays, clone, sumRecipes, uuid } from "@/utils/common
 export interface IActiveItemState {
 	activeItem?: IInventoryItem;
 	activeItemRecipe?: IInventoryRecipe;
+	currentSearch: string;
 }
 
-const initialState: IActiveItemState = {};
+const initialState: IActiveItemState = {
+	currentSearch: "",
+};
 
 export const activeItemSlice = createSlice({
 	initialState,
 	name: "activeItem",
 	reducers: {
+		setSearch(state, { payload = "" }: PayloadAction<string | undefined>) {
+			state.currentSearch = payload;
+		},
 		setActiveItem(state, { payload }: PayloadAction<IInventoryItem | undefined>) {
 			state.activeItem = payload;
 		},
@@ -70,12 +76,15 @@ export const activeItemSlice = createSlice({
 		getActiveItemRecipe(state, recipeId): IInventoryRecipe | undefined {
 			return activeItemSlice.getSelectors().getActiveItemRecipes(state)?.find(({ id }) => id === recipeId);
 		},
+		getCurrentSearch(state) {
+			return state.currentSearch;
+		},
 	},
 });
 
-export const { setActiveItem, updateItemRecipe, deleteItemRecipe } = activeItemSlice.actions;
+export const { setSearch, setActiveItem, updateItemRecipe, deleteItemRecipe } = activeItemSlice.actions;
 
-export const { getActiveItem, getActiveItemRecipes, getActiveItemRecipe } = activeItemSlice.selectors;
+export const { getCurrentSearch, getActiveItem, getActiveItemRecipes, getActiveItemRecipe } = activeItemSlice.selectors;
 
 export function loadItemThunk(itemId: string): AppThunk {
 	return function thunk(dispatch, getState) {
@@ -86,6 +95,7 @@ export function loadItemThunk(itemId: string): AppThunk {
 
 interface ISaveItemThunk {
 	recipeRecord: IRecipe;
+	basePower: number;
 	activeItemRecipe?: IInventoryRecipe;
 	machineCount: number;
 	somersloop: number;
@@ -95,12 +105,13 @@ interface ISaveItemThunk {
 	nodeType?: TNodeType;
 }
 
-export function saveItemThunk({ recipeRecord, nodeType, machineId, activeItemRecipe, machineCount, overclock, somersloop, nodeTypeMultiplier }: ISaveItemThunk): AppThunk {
+export function saveItemThunk({ recipeRecord, basePower, nodeType, machineId, activeItemRecipe, machineCount, overclock, somersloop, nodeTypeMultiplier }: ISaveItemThunk): AppThunk {
 	return function thunk(dispatch, getState) {
 		dispatch(updateItemRecipe({
 			nodeTypeMultiplier,
 			machineCount,
 			nodeType,
+			basePower,
 			recipeId: recipeRecord.id as TRecipe,
 			recipeName: recipeRecord.name,
 			cyclesPerMinute: recipeRecord.cyclesPerMinute,

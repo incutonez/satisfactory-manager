@@ -59,7 +59,25 @@ input[type=number] {
         @apply bg-stone-200;
     }
     
-    .field-combo-box[data-required="true"] > input:invalid {
+    input:invalid {
         @apply !ring-red-600;
+    }
+    
+    .base-field {
+        @apply appearance-none rounded-md h-8 py-1 px-2 outline-none text-sm ring-1 ring-inset ring-offset-0 ring-gray-500 enabled:focus:ring-sky-600 bg-white text-gray-800 disabled:bg-gray-200 disabled:opacity-100 placeholder:text-gray-500;
+    }
+    
+    .base-tabs {
+        .tab-list {
+            @apply flex data-[orientation=vertical]:flex-col;
+
+            .tab-header {
+                @apply cursor-pointer hover:bg-sky-300 px-2 py-1 rounded-t-md;
+                
+                &[data-selected="true"] {
+                    @apply border-b-2 border-sky-600 font-semibold bg-sky-200;
+                }
+            }
+        }
     }
 }

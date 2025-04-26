@@ -1,8 +1,9 @@
 ﻿import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { getActiveFactory, IFactory, loadFactoryInventoryThunk } from "@/api/factories.ts";
 import defaultInventory from "@/api/inventory.json";
+import { getGenerators, importGeneratorsThunk, loadPowerThunk, savePowerGeneratorsThunk } from "@/api/power.ts";
 import { AppThunk } from "@/store.ts";
-import { IInventoryItem, IInventoryRecipe } from "@/types.ts";
+import { IInventoryItem, IInventoryRecipe, IProductionImport } from "@/types.ts";
 import { clone, downloadFile, sumRecipes } from "@/utils/common.ts";
 
 export const inventoryItems = defaultInventory as IInventoryItem[];
@@ -98,11 +99,15 @@ export const inventorySlice = createSlice({
 		},
 		importInventory(state, { payload }: PayloadAction<IInventoryItem[]>) {
 			state.inventory = payload;
+			state.inventoryDraft = state.inventory;
 		},
 	},
 	selectors: {
 		getInventory(state) {
 			return state.inventory;
+		},
+		getInventoryId(state) {
+			return state.inventoryId;
 		},
 		getInventoryDraft(state) {
 			return state.inventoryDraft;
@@ -115,7 +120,7 @@ export const inventorySlice = createSlice({
 
 export const { resetDraftInventory, updateDraftInventory, importInventory, deleteInventory, addRecipe, updateRecipe, deleteRecipe, loadInventory, saveInventory } = inventorySlice.actions;
 
-export const { getInventoryDraft, getInventory, getInventoryItem } = inventorySlice.selectors;
+export const { getInventoryId, getInventoryDraft, getInventory, getInventoryItem } = inventorySlice.selectors;
 
 export function findInventoryItemById(inventory: IInventoryItem[], itemId: string) {
 	return inventory.find(({ id }) => id === itemId);
@@ -124,24 +129,37 @@ export function findInventoryItemById(inventory: IInventoryItem[], itemId: strin
 export function downloadInventory(): AppThunk {
 	return function thunk(_dispatch, getState) {
 		const inventory = getInventory(getState());
+		const generators = getGenerators(getState());
 		const factoryName = getActiveFactory(getState())?.name;
-		downloadFile(new Blob([JSON.stringify(inventory)], {
+		downloadFile(new Blob([JSON.stringify({
+			inventory,
+			generators,
+		})], {
 			type: "application/json",
 		}), factoryName);
+	};
+}
+
+export function resetInventoryDraftThunk(): AppThunk {
+	return function thunk(dispatch) {
+		dispatch(resetDraftInventory());
+		dispatch(loadPowerThunk());
 	};
 }
 
 export function clearInventoryThunk(): AppThunk {
 	return function thunk(dispatch) {
 		dispatch(saveInventory(true));
+		dispatch(savePowerGeneratorsThunk(true));
 		dispatch(loadFactoryInventoryThunk());
 	};
 }
 
-export function importInventoryThunk(inventory: IInventoryItem[]): AppThunk {
+export function importInventoryThunk({ inventory, generators }: IProductionImport): AppThunk {
 	return function thunk(dispatch) {
 		dispatch(importInventory(inventory));
 		dispatch(saveInventory(false));
+		dispatch(importGeneratorsThunk(generators));
 	};
 }
 
@@ -174,6 +192,7 @@ export function updateRecipesThunk(updateRecord: IInventoryItem): AppThunk {
 			}
 		}
 		dispatch(updateDraftInventory());
+		dispatch(loadPowerThunk());
 	};
 }
 

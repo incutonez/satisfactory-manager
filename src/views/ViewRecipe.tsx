@@ -2,7 +2,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { getActiveItemRecipe, saveItemThunk } from "@/api/activeItem.ts";
 import { Miners, NodeTypes, TNodeType } from "@/api/data.ts";
-import { TMachine } from "@/api/machines.ts";
+import { machines, TMachine } from "@/api/machines.ts";
 import { recipes } from "@/api/recipes.ts";
 import { BaseButton, IBaseButton } from "@/components/BaseButton.tsx";
 import { BaseDialog, IBaseDialog } from "@/components/BaseDialog.tsx";
@@ -13,9 +13,10 @@ import { IconSave } from "@/components/Icons.tsx";
 import { RouteViewItem } from "@/routes.ts";
 import { useAppDispatch, useAppSelector } from "@/store.ts";
 import { INodeType, IRecipe, TItemKey, TRecipeType } from "@/types.ts";
-import { calculateSomersloop } from "@/utils/common.ts";
+import { calculateMachinePower, calculateSomersloop } from "@/utils/common.ts";
 import { RecipeItems } from "@/views/recipe/RecipeItems.tsx";
 import { RecipeMachine } from "@/views/shared/CellItem.tsx";
+import { TablePower } from "@/views/shared/TablePower.tsx";
 
 export interface IViewRecipe extends IBaseDialog {
 	recipeId?: string;
@@ -43,6 +44,7 @@ export interface IViewRecipeItems {
 	machineId?: TMachine;
 	setMachineId: Dispatch<SetStateAction<TMachine | undefined>>;
 	nodeTypeMultiplier: number;
+	basePower: number;
 }
 
 export function ViewRecipeSave({ record, ...props }: IViewRecipeSave) {
@@ -56,8 +58,21 @@ export function ViewRecipeSave({ record, ...props }: IViewRecipeSave) {
 	);
 }
 
-export function ViewRecipeItems({ record, recipeId, nodeTypeMultiplier, setSelectedNodeType, setNodeType, setMachineId, machineId, nodeType, overclock, setOverclock, somersloop, setSomersloop, machineCount, setMachineCount, itemId }: IViewRecipeItems) {
+export function ViewRecipeItems({ record, basePower, recipeId, nodeTypeMultiplier, setSelectedNodeType, setNodeType, setMachineId, machineId, nodeType, overclock, setOverclock, somersloop, setSomersloop, machineCount, setMachineCount, itemId }: IViewRecipeItems) {
 	const overclockValue = useMemo(() => overclock / 100, [overclock]);
+	const activeItemRecipe = useAppSelector((state) => getActiveItemRecipe(state, recipeId));
+	const consumptionAdjusted = useMemo(() => calculateMachinePower({
+		somersloop: activeItemRecipe?.somersloopValue ?? 0,
+		overclock: activeItemRecipe?.overclockValue ?? 100,
+		machineCount: activeItemRecipe?.machineCount ?? 1,
+		basePower: activeItemRecipe?.basePower ?? 0,
+	}), [activeItemRecipe?.somersloopValue, activeItemRecipe?.overclockValue, activeItemRecipe?.machineCount, activeItemRecipe?.basePower]);
+	const recipePower = useMemo(() => calculateMachinePower({
+		somersloop,
+		overclock,
+		machineCount,
+		basePower,
+	}), [somersloop, overclock, machineCount, basePower]);
 
 	if (!record) {
 		return;
@@ -139,33 +154,45 @@ export function ViewRecipeItems({ record, recipeId, nodeTypeMultiplier, setSelec
 				<section className="flex flex-col space-y-2">
 					<FieldNumber
 						label="Overclock %"
-						min={0}
-						max={250}
-						inputWidth="w-16"
+						defaultValue={100}
+						minValue={0}
+						maxValue={250}
 						labelCls="w-26"
-						setter={(value = 100) => setOverclock(value)}
+						inputWidth="w-16"
+						onChange={setOverclock}
 						value={overclock}
 					/>
 					<FieldNumber
 						label="Somersloop"
-						min={0}
-						max={4}
-						inputWidth="w-16"
+						defaultValue={0}
+						step={0.01}
+						minValue={0}
+						maxValue={1}
+						isRequired={true}
 						labelCls="w-26"
-						setter={(value = 0) => setSomersloop(value)}
+						inputWidth="w-16"
 						value={somersloop}
+						onChange={setSomersloop}
 					/>
 				</section>
 				<section className="flex flex-col space-y-2">
 					<FieldNumber
 						label="Machines"
-						min={1}
-						inputWidth="w-21"
+						defaultValue={1}
+						minValue={1}
 						labelCls="w-21"
-						setter={(value = 1) => setMachineCount(value)}
+						inputWidth="w-21"
+						onChange={setMachineCount}
 						value={machineCount}
 					/>
 					{nodeTypeNode}
+				</section>
+				<section className="flex flex-col space-y-2 ml-auto">
+					<TablePower
+						recipePower={recipePower}
+						powerType="consumes"
+						consumptionAdjustment={consumptionAdjusted}
+					/>
 				</section>
 			</section>
 			<section className="flex items-center justify-center space-x-4 flex-1">
@@ -199,6 +226,16 @@ export function ViewRecipe({ recipeId, recipeType, itemId, show }: IViewRecipe) 
 	const [machineId, setMachineId] = useState<TMachine>();
 	const [nodeType, setNodeType] = useState<TNodeType | undefined>();
 	const [selectedNodeType, setSelectedNodeType] = useState<INodeType>();
+	const basePower = useMemo(() => {
+		let basePower = recipeRecord?.basePower ?? 0;
+		if (recipeRecord?.isRaw && machineId) {
+			const found = machines.find(({ id }) => id === machineId)?.basePower;
+			if (found) {
+				basePower = found;
+			}
+		}
+		return basePower;
+	}, [machineId, recipeRecord?.basePower, recipeRecord?.isRaw]);
 	const footerNode = (
 		<ViewRecipeSave
 			record={recipeRecord}
@@ -239,7 +276,7 @@ export function ViewRecipe({ recipeId, recipeType, itemId, show }: IViewRecipe) 
 	function onClickSave() {
 		if (recipeRecord) {
 			dispatch(saveItemThunk({
-				machineId: machineId ?? recipeRecord.producedIn[0],
+				basePower,
 				nodeType,
 				machineCount,
 				recipeRecord,
@@ -247,6 +284,7 @@ export function ViewRecipe({ recipeId, recipeType, itemId, show }: IViewRecipe) 
 				overclock,
 				somersloop,
 				nodeTypeMultiplier,
+				machineId: machineId ?? recipeRecord.producedIn,
 			}));
 			viewItem();
 		}
@@ -265,7 +303,7 @@ export function ViewRecipe({ recipeId, recipeType, itemId, show }: IViewRecipe) 
 
 	useEffect(() => {
 		if (recipeRecord && !activeItemRecipe?.isRaw) {
-			setMachineId(recipeRecord.producedIn[0]);
+			setMachineId(recipeRecord.producedIn);
 		}
 	}, [recipeRecord, activeItemRecipe]);
 
@@ -316,6 +354,7 @@ export function ViewRecipe({ recipeId, recipeType, itemId, show }: IViewRecipe) 
 					setNodeType={setNodeType}
 					setSelectedNodeType={setSelectedNodeType}
 					nodeTypeMultiplier={nodeTypeMultiplier}
+					basePower={basePower}
 				/>
 			</article>
 		</BaseDialog>

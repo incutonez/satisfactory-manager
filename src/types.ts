@@ -1,4 +1,5 @@
-﻿import { TNodeType } from "@/api/data.ts";
+﻿import { Ref } from "react";
+import { TNodeType } from "@/api/data.ts";
 import { TMachine } from "@/api/machines.ts";
 import { TRecipe } from "@/api/recipes.ts";
 
@@ -15,6 +16,11 @@ export interface IKeyValue {
 
 export interface INodeType extends IKeyValue {
 	amountPerMinute: number;
+}
+
+export interface IProductionImport {
+	inventory: IInventoryItem[];
+	generators: IMachinePower[];
 }
 
 export interface IInventoryItem {
@@ -55,10 +61,17 @@ export interface IInventoryRecipe {
 	cyclesPerMinute: number;
 	isAlternate: boolean;
 	nodeTypeMultiplier: number;
+	powerConsumption?: number;
+	basePower: number;
 	isRaw?: boolean;
 	items: IRecipeItem[];
 	producedIn: TMachine;
 	nodeType?: TNodeType;
+}
+
+// Aria components don't have ref in their interfaces, so this is what my wrapped components extend from
+export interface IBaseComponent<T> {
+	ref?: Ref<T>;
 }
 
 export interface IRecipe {
@@ -70,15 +83,29 @@ export interface IRecipe {
 	cyclesPerMinute: number;
 	isAlternate: boolean;
 	items: IRecipeItem[];
-	producedIn: TMachine[];
+	producedIn: TMachine;
+	basePower: number;
 	isRaw?: boolean;
 	isLiquid?: boolean;
 }
+
+export type TMachinePowerType = "consumes" | "produces" | "both";
 
 export interface IMachine {
 	id: string;
 	name: string;
 	image: string;
+	powerType: TMachinePowerType;
+	basePower: number;
+}
+
+export interface IMachinePower extends IMachine {
+	machineId?: TMachine;
+	recipeId?: string;
+	recipeName?: string;
+	count: number;
+	overclock: number;
+	somersloop?: number;
 }
 
 export interface IRouteViewItem {
@@ -96,4 +123,17 @@ export interface ICalculateAmountDisplays {
 	somersloop: number;
 	machineCount: number;
 	nodeTypeMultiplier: number;
+}
+
+export interface ICalculateMachinePower {
+	somersloop: number;
+	overclock: number;
+	machineCount: number;
+	basePower: number;
+}
+
+export interface ISetPower {
+	data: IMachinePower[];
+	totalPower: number;
+	totalPowerConsumption: number;
 }

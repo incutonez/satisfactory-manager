@@ -3,12 +3,58 @@ import camelCase from "just-camel-case";
 import path from "path";
 import { TMachine } from "@/api/machines.ts";
 import data from "./satisfactory.json";
-import { IInventoryItem, IMachine, IRecipe, IRecipeItem, TItemKey } from "./types.ts";
-import { capitalizeFirstLetters } from "./utils/common.ts";
+import { IInventoryItem, IMachine, IRecipe, IRecipeItem, TItemKey, TMachinePowerType } from "./types.ts";
+
+const validMachines: TMachine[] = [
+	"constructor",
+	"smelter",
+	"blender",
+	"packager",
+	"converter",
+	"particleAccelerator",
+	"quantumEncoder",
+	"refinery",
+	"manufacturer",
+	"assembler",
+	"foundry",
+	"minerMk1",
+	"minerMk2",
+	"minerMk3",
+	"waterExtractor",
+	"oilExtractor",
+	"resourceWellExtractor",
+	"biomassBurner",
+	"coalPoweredGenerator",
+	"fuelPoweredGenerator",
+	"geothermalGenerator",
+	"nuclearPowerGenerator",
+	"alienPowerGenerator",
+];
+
+export interface ISatisfactoryBuilding {
+	slug: string;
+	icon: string;
+	name: string;
+	description: string;
+	className: string;
+	categories: unknown[];
+	buildMenuPriority: number;
+	metadata: {
+		powerConsumption: number;
+		powerConsumptionExponent: number;
+		manufacturingSpeed: number;
+	};
+	size: {
+		width: number;
+		height: number;
+		length: number;
+	};
+}
 
 export interface ISatisfactoryData {
-	items: ISatisfactoryItem[];
-	recipes: ISatisfactoryRecipe[];
+	items: Record<string, ISatisfactoryItem>;
+	recipes: Record<string, ISatisfactoryRecipe>;
+	buildings: Record<string, ISatisfactoryBuilding>;
 }
 
 export interface ISatisfactoryItem {
@@ -59,13 +105,234 @@ export interface ISatisfactoryRecipe {
 const machinesOut: IMachine[] = [];
 const inventoryMapping: Record<string, string> = {};
 const itemsOut: IInventoryItem[] = [];
-const recipesOut: IRecipe[] = [];
+const recipesOut: IRecipe[] = [{
+	id: "recipeIronOre",
+	productionCycleTime: 0.5,
+	cyclesPerMinute: 120,
+	items: [{
+		recipeType: "produces",
+		amountPerCycleDisplay: 0,
+		amountPerMinuteDisplay: 0,
+		itemId: "ironOre",
+		amountPerCycle: 1,
+		amountPerMinute: 120,
+	}],
+	name: "Iron Ore",
+	isAlternate: false,
+	isRaw: true,
+	producedIn: "minerMk1",
+	basePower: 5,
+}, {
+	id: "recipeCopperOre",
+	productionCycleTime: 0.5,
+	cyclesPerMinute: 120,
+	items: [{
+		recipeType: "produces",
+		amountPerCycleDisplay: 0,
+		amountPerMinuteDisplay: 0,
+		itemId: "copperOre",
+		amountPerCycle: 1,
+		amountPerMinute: 120,
+	}],
+	name: "Copper Ore",
+	isAlternate: false,
+	isRaw: true,
+	producedIn: "minerMk1",
+	basePower: 5,
+}, {
+	id: "recipeCateriumOre",
+	productionCycleTime: 0.5,
+	cyclesPerMinute: 120,
+	items: [{
+		recipeType: "produces",
+		amountPerCycleDisplay: 0,
+		amountPerMinuteDisplay: 0,
+		itemId: "cateriumOre",
+		amountPerCycle: 1,
+		amountPerMinute: 120,
+	}],
+	name: "Caterium Ore",
+	isAlternate: false,
+	isRaw: true,
+	producedIn: "minerMk1",
+	basePower: 5,
+}, {
+	id: "recipeSulfur",
+	productionCycleTime: 0.5,
+	cyclesPerMinute: 120,
+	items: [{
+		recipeType: "produces",
+		amountPerCycleDisplay: 0,
+		amountPerMinuteDisplay: 0,
+		itemId: "sulfur",
+		amountPerCycle: 1,
+		amountPerMinute: 120,
+	}],
+	name: "Sulfur",
+	isAlternate: false,
+	isRaw: true,
+	producedIn: "minerMk1",
+	basePower: 5,
+}, {
+	id: "recipeUranium",
+	productionCycleTime: 0.5,
+	cyclesPerMinute: 120,
+	items: [{
+		recipeType: "produces",
+		amountPerCycleDisplay: 0,
+		amountPerMinuteDisplay: 0,
+		itemId: "uranium",
+		amountPerCycle: 1,
+		amountPerMinute: 120,
+	}],
+	name: "Uranium",
+	isAlternate: false,
+	isRaw: true,
+	producedIn: "minerMk1",
+	basePower: 5,
+}, {
+	id: "recipeBauxite",
+	productionCycleTime: 0.5,
+	cyclesPerMinute: 120,
+	items: [{
+		recipeType: "produces",
+		amountPerCycleDisplay: 0,
+		amountPerMinuteDisplay: 0,
+		itemId: "bauxite",
+		amountPerCycle: 1,
+		amountPerMinute: 120,
+	}],
+	name: "Bauxite",
+	isAlternate: false,
+	isRaw: true,
+	producedIn: "minerMk1",
+	basePower: 5,
+}, {
+	id: "recipeCoal",
+	productionCycleTime: 0.5,
+	cyclesPerMinute: 120,
+	items: [{
+		recipeType: "produces",
+		amountPerCycleDisplay: 0,
+		amountPerMinuteDisplay: 0,
+		itemId: "coal",
+		amountPerCycle: 1,
+		amountPerMinute: 120,
+	}],
+	name: "Coal",
+	isAlternate: false,
+	isRaw: true,
+	producedIn: "minerMk1",
+	basePower: 5,
+}, {
+	id: "recipeLimestone",
+	productionCycleTime: 0.5,
+	cyclesPerMinute: 120,
+	items: [{
+		recipeType: "produces",
+		amountPerCycleDisplay: 0,
+		amountPerMinuteDisplay: 0,
+		itemId: "limestone",
+		amountPerCycle: 1,
+		amountPerMinute: 120,
+	}],
+	name: "Limestone",
+	isAlternate: false,
+	isRaw: true,
+	producedIn: "minerMk1",
+	basePower: 5,
+}, {
+	id: "recipeQuartz",
+	productionCycleTime: 0.5,
+	cyclesPerMinute: 120,
+	items: [{
+		recipeType: "produces",
+		amountPerCycleDisplay: 0,
+		amountPerMinuteDisplay: 0,
+		itemId: "rawQuartz",
+		amountPerCycle: 1,
+		amountPerMinute: 120,
+	}],
+	name: "Raw Quartz",
+	isAlternate: false,
+	isRaw: true,
+	producedIn: "minerMk1",
+	basePower: 5,
+}, {
+	id: "recipeSAM",
+	productionCycleTime: 0.5,
+	cyclesPerMinute: 120,
+	items: [{
+		recipeType: "produces",
+		amountPerCycleDisplay: 0,
+		amountPerMinuteDisplay: 0,
+		itemId: "sam",
+		amountPerCycle: 1,
+		amountPerMinute: 120,
+	}],
+	name: "SAM",
+	isAlternate: false,
+	isRaw: true,
+	producedIn: "minerMk1",
+	basePower: 5,
+}, {
+	id: "recipeWater",
+	productionCycleTime: 0.5,
+	cyclesPerMinute: 120,
+	items: [{
+		recipeType: "produces",
+		amountPerCycleDisplay: 0,
+		amountPerMinuteDisplay: 0,
+		itemId: "water",
+		amountPerCycle: 1,
+		amountPerMinute: 120,
+	}],
+	name: "Water",
+	isAlternate: false,
+	isLiquid: true,
+	producedIn: "waterExtractor",
+	basePower: 20,
+}, {
+	id: "recipeOil",
+	productionCycleTime: 0.5,
+	cyclesPerMinute: 120,
+	items: [{
+		recipeType: "produces",
+		amountPerCycleDisplay: 0,
+		amountPerMinuteDisplay: 0,
+		itemId: "crudeOil",
+		amountPerCycle: 1,
+		amountPerMinute: 240,
+	}],
+	name: "Oil",
+	isAlternate: false,
+	isLiquid: true,
+	producedIn: "oilExtractor",
+	basePower: 40,
+}, {
+	id: "recipeNitrogenGas",
+	productionCycleTime: 0.5,
+	cyclesPerMinute: 120,
+	items: [{
+		recipeType: "produces",
+		amountPerCycleDisplay: 0,
+		amountPerMinuteDisplay: 0,
+		itemId: "nitrogenGas",
+		amountPerCycle: 1,
+		amountPerMinute: 120,
+	}],
+	name: "Nitrogen Gas",
+	isAlternate: false,
+	isLiquid: true,
+	producedIn: "resourceWellExtractor",
+	basePower: 150,
+}];
 const CopyItems = false;
 const CopyRecipes = true;
-const CopyMachines = false;
+const CopyMachines = true;
 const ReadOnly = false;
 const OutputDir = path.join("./src", "api");
-const { items, recipes } = data as unknown as ISatisfactoryData;
+const { items, recipes, buildings } = data as unknown as ISatisfactoryData;
 
 const ImageDir = path.join("/Users", "incut", "workspace", "SatisfactoryTools", "www", "assets", "images", "items");
 for (const key in items) {
@@ -73,6 +340,19 @@ for (const key in items) {
 	const id = camelCase(item.slug) as TItemKey;
 	const image = `${id}.png`;
 	inventoryMapping[item.className] = id;
+	if (item.slug === "portable-miner") {
+		if (CopyMachines && !ReadOnly) {
+			copyFileSync(path.join(ImageDir, `${item.icon}_256.png`), path.join("./public", image));
+		}
+		machinesOut.push({
+			image,
+			id,
+			powerType: "consumes",
+			name: item.name,
+			basePower: 0,
+		});
+		continue;
+	}
 	itemsOut.push({
 		id,
 		image,
@@ -87,8 +367,64 @@ for (const key in items) {
 	}
 }
 
+for (const key in buildings) {
+	const building = buildings[key];
+	if (building.slug === "alien-power-augmenter") {
+		building.slug = "alienPowerGenerator";
+	}
+	else if (building.slug === "nuclear-power-plant") {
+		building.slug = "nuclearPowerGenerator";
+	}
+	const machineKey = camelCase(building.slug) as TMachine;
+	if (!validMachines.includes(machineKey)) {
+		continue;
+	}
+	const image = `${machineKey}.png`;
+	if (CopyMachines && !ReadOnly) {
+		copyFileSync(path.join(ImageDir, `${building.icon}_256.png`), path.join("./public", image));
+	}
+	let powerType: TMachinePowerType = "consumes";
+	let { powerConsumption } = building.metadata;
+	if (!powerConsumption) {
+		powerType = "produces";
+		switch (machineKey) {
+			case "biomassBurner":
+				powerConsumption = 30;
+				break;
+			case "coalPoweredGenerator":
+				powerConsumption = 75;
+				break;
+			case "fuelPoweredGenerator":
+				powerConsumption = 250;
+				break;
+			case "geothermalGenerator":
+				powerConsumption = 400;
+				break;
+			case "nuclearPowerGenerator":
+				powerConsumption = 2500;
+				break;
+			case "alienPowerGenerator":
+				powerConsumption = 500;
+				break;
+			default:
+				// This means we're dealing with the Particle Accelerator, Converter, etc.
+				powerType = "consumes";
+		}
+	}
+	machinesOut.push({
+		image,
+		powerType,
+		name: building.name,
+		id: machineKey,
+		basePower: powerConsumption,
+	});
+}
+
 for (const key in recipes) {
 	const recipe = recipes[key];
+	if (!recipe.producedIn.length) {
+		continue;
+	}
 	const productionCycleTime = recipe.time;
 	const cyclesPerMinute = 60 / productionCycleTime;
 	const id = camelCase(recipe.slug);
@@ -113,7 +449,7 @@ for (const key in recipes) {
 			amountPerMinute: product.amount * cyclesPerMinute,
 		});
 	});
-	recipe.producedIn = recipe.producedIn.map((machineKey) => {
+	const producedIn = recipe.producedIn.map((machineKey) => {
 		let id = camelCase(machineKey.replace(/^Desc_|Mk1_C$|_C$/g, ""));
 		if (id === "oilRefinery") {
 			id = "refinery";
@@ -121,28 +457,18 @@ for (const key in recipes) {
 		else if (id === "hadronCollider") {
 			id = "particleAccelerator";
 		}
-		const image = `${id}.png`;
-		const found = machinesOut.find((machine) => machine.id === id);
-		if (!found) {
-			machinesOut.push({
-				id,
-				image,
-				name: capitalizeFirstLetters(id),
-			});
-			if (CopyMachines && !ReadOnly) {
-				copyFileSync(path.join(ImageDir, `${machineKey.replace(/_/g, "-").toLowerCase()}_256.png`), path.join("./public", image));
-			}
-		}
 		return id;
-	});
+	})[0] as TMachine;
+	const foundMachine = machinesOut.find(({ id }) => id === producedIn);
 	recipesOut.push({
 		id,
 		productionCycleTime,
 		cyclesPerMinute,
 		items,
+		producedIn,
+		basePower: recipe.isVariablePower ? recipe.maxPower : foundMachine?.basePower ?? 1,
 		name: recipe.name,
 		isAlternate: recipe.alternate,
-		producedIn: recipe.producedIn as TMachine[],
 	});
 }
 
