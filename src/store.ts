@@ -3,8 +3,9 @@ import { Action, combineSlices, configureStore, ThunkAction, UnknownAction } fro
 import { activeItemSlice } from "@/api/activeItem.ts";
 import { factoriesSlice } from "@/api/factories.ts";
 import { inventorySlice } from "@/api/inventory.ts";
+import { powerSlice } from "@/api/power.ts";
 
-const reducer = combineSlices(inventorySlice, factoriesSlice, activeItemSlice);
+const reducer = combineSlices(inventorySlice, factoriesSlice, activeItemSlice, powerSlice);
 
 export type AppThunk<TAction extends Action = UnknownAction> = ThunkAction<void, RootState, unknown, TAction>;
 

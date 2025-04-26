@@ -14,6 +14,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as PowerImport } from './routes/power'
 import { Route as ItemsImport } from './routes/items'
 import { Route as IndexImport } from './routes/index'
+import { Route as PowerGeneratorsGeneratorIdImport } from './routes/power/generators.$generatorId'
 import { Route as ItemsItemIdRecipeTypeRecipeTypeImport } from './routes/items.$itemId.recipeType/$recipeType'
 import { Route as ItemsItemIdRecipeTypeRecipeTypeRecipesRecipeIdImport } from './routes/items.$itemId.recipeType/$recipeType/recipes.$recipeId'
 
@@ -36,6 +37,14 @@ const IndexRoute = IndexImport.update({
   path: '/',
   getParentRoute: () => rootRoute,
 } as any)
+
+const PowerGeneratorsGeneratorIdRoute = PowerGeneratorsGeneratorIdImport.update(
+  {
+    id: '/generators/$generatorId',
+    path: '/generators/$generatorId',
+    getParentRoute: () => PowerRoute,
+  } as any,
+)
 
 const ItemsItemIdRecipeTypeRecipeTypeRoute =
   ItemsItemIdRecipeTypeRecipeTypeImport.update({
@@ -75,6 +84,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/power'
       preLoaderRoute: typeof PowerImport
       parentRoute: typeof rootRoute
+    }
+    '/power/generators/$generatorId': {
+      id: '/power/generators/$generatorId'
+      path: '/generators/$generatorId'
+      fullPath: '/power/generators/$generatorId'
+      preLoaderRoute: typeof PowerGeneratorsGeneratorIdImport
+      parentRoute: typeof PowerImport
     }
     '/items/$itemId/recipeType/$recipeType': {
       id: '/items/$itemId/recipeType/$recipeType'
@@ -121,10 +137,21 @@ const ItemsRouteChildren: ItemsRouteChildren = {
 
 const ItemsRouteWithChildren = ItemsRoute._addFileChildren(ItemsRouteChildren)
 
+interface PowerRouteChildren {
+  PowerGeneratorsGeneratorIdRoute: typeof PowerGeneratorsGeneratorIdRoute
+}
+
+const PowerRouteChildren: PowerRouteChildren = {
+  PowerGeneratorsGeneratorIdRoute: PowerGeneratorsGeneratorIdRoute,
+}
+
+const PowerRouteWithChildren = PowerRoute._addFileChildren(PowerRouteChildren)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/items': typeof ItemsRouteWithChildren
-  '/power': typeof PowerRoute
+  '/power': typeof PowerRouteWithChildren
+  '/power/generators/$generatorId': typeof PowerGeneratorsGeneratorIdRoute
   '/items/$itemId/recipeType/$recipeType': typeof ItemsItemIdRecipeTypeRecipeTypeRouteWithChildren
   '/items/$itemId/recipeType/$recipeType/recipes/$recipeId': typeof ItemsItemIdRecipeTypeRecipeTypeRecipesRecipeIdRoute
 }
@@ -132,7 +159,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/items': typeof ItemsRouteWithChildren
-  '/power': typeof PowerRoute
+  '/power': typeof PowerRouteWithChildren
+  '/power/generators/$generatorId': typeof PowerGeneratorsGeneratorIdRoute
   '/items/$itemId/recipeType/$recipeType': typeof ItemsItemIdRecipeTypeRecipeTypeRouteWithChildren
   '/items/$itemId/recipeType/$recipeType/recipes/$recipeId': typeof ItemsItemIdRecipeTypeRecipeTypeRecipesRecipeIdRoute
 }
@@ -141,7 +169,8 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/items': typeof ItemsRouteWithChildren
-  '/power': typeof PowerRoute
+  '/power': typeof PowerRouteWithChildren
+  '/power/generators/$generatorId': typeof PowerGeneratorsGeneratorIdRoute
   '/items/$itemId/recipeType/$recipeType': typeof ItemsItemIdRecipeTypeRecipeTypeRouteWithChildren
   '/items/$itemId/recipeType/$recipeType/recipes/$recipeId': typeof ItemsItemIdRecipeTypeRecipeTypeRecipesRecipeIdRoute
 }
@@ -152,6 +181,7 @@ export interface FileRouteTypes {
     | '/'
     | '/items'
     | '/power'
+    | '/power/generators/$generatorId'
     | '/items/$itemId/recipeType/$recipeType'
     | '/items/$itemId/recipeType/$recipeType/recipes/$recipeId'
   fileRoutesByTo: FileRoutesByTo
@@ -159,6 +189,7 @@ export interface FileRouteTypes {
     | '/'
     | '/items'
     | '/power'
+    | '/power/generators/$generatorId'
     | '/items/$itemId/recipeType/$recipeType'
     | '/items/$itemId/recipeType/$recipeType/recipes/$recipeId'
   id:
@@ -166,6 +197,7 @@ export interface FileRouteTypes {
     | '/'
     | '/items'
     | '/power'
+    | '/power/generators/$generatorId'
     | '/items/$itemId/recipeType/$recipeType'
     | '/items/$itemId/recipeType/$recipeType/recipes/$recipeId'
   fileRoutesById: FileRoutesById
@@ -174,13 +206,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ItemsRoute: typeof ItemsRouteWithChildren
-  PowerRoute: typeof PowerRoute
+  PowerRoute: typeof PowerRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ItemsRoute: ItemsRouteWithChildren,
-  PowerRoute: PowerRoute,
+  PowerRoute: PowerRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -208,7 +240,14 @@ export const routeTree = rootRoute
       ]
     },
     "/power": {
-      "filePath": "power.tsx"
+      "filePath": "power.tsx",
+      "children": [
+        "/power/generators/$generatorId"
+      ]
+    },
+    "/power/generators/$generatorId": {
+      "filePath": "power/generators.$generatorId.tsx",
+      "parent": "/power"
     },
     "/items/$itemId/recipeType/$recipeType": {
       "filePath": "items.$itemId.recipeType/$recipeType.tsx",

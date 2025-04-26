@@ -1,10 +1,12 @@
 ﻿import { useEffect, useState } from "react";
 import { Key } from "react-aria-components";
 import { Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import { setSearch } from "@/api/activeItem.ts";
 import { BaseTab } from "@/components/BaseTab.tsx";
 import { BaseTabContents } from "@/components/BaseTabContents.tsx";
 import { BaseTabs } from "@/components/BaseTabs.tsx";
 import { RouteViewItems, RouteViewPower } from "@/routes.ts";
+import { useAppDispatch } from "@/store.ts";
 import { AppHeader } from "@/views/shared/AppHeader.tsx";
 
 const rootItemsId = "root-items";
@@ -13,6 +15,7 @@ const rootPowerId = "root-power";
 export function ViewMain() {
 	const navigate = useNavigate();
 	const location = useLocation();
+	const dispatch = useAppDispatch();
 	const [selectedTab, setSelectedTab] = useState<Key>(rootItemsId);
 	const tabs = (
 		<>
@@ -28,6 +31,7 @@ export function ViewMain() {
 	);
 
 	function onSelectTab(tabId: Key) {
+		dispatch(setSearch());
 		setSelectedTab(tabId);
 		if (tabId === rootItemsId) {
 			navigate({
@@ -56,7 +60,7 @@ export function ViewMain() {
 		<>
 			<AppHeader />
 			<BaseTabs
-				className="flex flex-col overflow-hidden"
+				className="flex flex-col overflow-hidden size-full"
 				tabs={tabs}
 				selectedKey={selectedTab}
 				onSelectionChange={onSelectTab}

@@ -9,3 +9,5 @@ export const RouteViewItem = `${RouteViewItems}/$itemId/recipeType/$recipeType`;
 export const RouteViewRecipe = `${RouteViewItem}/recipes/$recipeId`;
 
 export const RouteViewPower = "/power";
+
+export const RouteViewPowerGenerator = `${RouteViewPower}/generators/$generatorId`;

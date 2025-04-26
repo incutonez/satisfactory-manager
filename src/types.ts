@@ -18,6 +18,11 @@ export interface INodeType extends IKeyValue {
 	amountPerMinute: number;
 }
 
+export interface IProductionImport {
+	inventory: IInventoryItem[];
+	generators: IMachinePower[];
+}
+
 export interface IInventoryItem {
 	id: TItemKey;
 	name: string;
@@ -94,6 +99,15 @@ export interface IMachine {
 	basePower: number;
 }
 
+export interface IMachinePower extends IMachine {
+	machineId?: TMachine;
+	recipeId?: string;
+	recipeName?: string;
+	count: number;
+	overclock: number;
+	somersloop?: number;
+}
+
 export interface IRouteViewItem {
 	itemId: TItemKey;
 	recipeType: TRecipeType;
@@ -111,7 +125,7 @@ export interface ICalculateAmountDisplays {
 	nodeTypeMultiplier: number;
 }
 
-export interface IMachinePower {
+export interface ICalculateMachinePower {
 	somersloop: number;
 	overclock: number;
 	machineCount: number;
@@ -119,7 +133,7 @@ export interface IMachinePower {
 }
 
 export interface ISetPower {
-	data: IInventoryRecipe[];
+	data: IMachinePower[];
 	totalPower: number;
 	totalPowerConsumption: number;
 }

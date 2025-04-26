@@ -6,7 +6,7 @@ import { FieldDisplay } from "@/components/FieldDisplay.tsx";
 import { FieldFile } from "@/components/FieldFile.tsx";
 import { IconSave } from "@/components/Icons.tsx";
 import { useAppDispatch } from "@/store.ts";
-import { IInventoryItem } from "@/types.ts";
+import { IProductionImport } from "@/types.ts";
 
 export function ViewImport({ ...props }: IBaseDialog) {
 	const dispatch = useAppDispatch();
@@ -24,7 +24,7 @@ export function ViewImport({ ...props }: IBaseDialog) {
 			const reader = new FileReader();
 			reader.onload = ({ target }) => {
 				if (target) {
-					dispatch(importInventoryThunk(JSON.parse(target.result as string) as IInventoryItem[]));
+					dispatch(importInventoryThunk(JSON.parse(target.result as string) as IProductionImport));
 					props.setShow(false);
 				}
 			};

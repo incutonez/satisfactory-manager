@@ -34,30 +34,41 @@ export function ItemImage({ itemId }: { itemId: TItemKey }) {
 	);
 }
 
-export function RecipeMachine({ machineId, showLeftArrow }: { machineId?: string, showLeftArrow: boolean }) {
+export function RecipeMachine({ machineId, showLeftArrow = true, showRightArrow = true, arrowSize = "size-10", size = "size-32" }: { machineId?: string, arrowSize?: string, showLeftArrow?: boolean, showRightArrow?: boolean, size?: string }) {
 	if (!machineId) {
 		return;
 	}
+
 	let leftArrowNode;
+	let rightArrowNode;
 	const found = machines.find((machine) => machine.id === machineId);
+
 	if (!found) {
 		return;
 	}
+
 	if (showLeftArrow) {
 		leftArrowNode = (
-			<IconArrowForward className="size-10" />
+			<IconArrowForward className={arrowSize} />
 		);
 	}
+
+	if (showRightArrow) {
+		rightArrowNode = (
+			<IconArrowForward className={arrowSize} />
+		);
+	}
+
 	return (
 		<>
 			{leftArrowNode}
 			<img
-				className="size-32"
+				className={size}
 				alt={found.name}
 				title={found.name}
 				src={found.image}
 			/>
-			<IconArrowForward className="size-10" />
+			{rightArrowNode}
 		</>
 	);
 }

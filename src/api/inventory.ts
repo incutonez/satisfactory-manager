@@ -1,10 +1,10 @@
 ﻿import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { round } from "mathjs";
 import { getActiveFactory, IFactory, loadFactoryInventoryThunk } from "@/api/factories.ts";
 import defaultInventory from "@/api/inventory.json";
+import { getGenerators, importGeneratorsThunk, loadPowerThunk, savePowerGeneratorsThunk } from "@/api/power.ts";
 import { AppThunk } from "@/store.ts";
-import { IInventoryItem, IInventoryRecipe, ISetPower } from "@/types.ts";
-import { calculateMachinePower, clone, downloadFile, sumRecipes } from "@/utils/common.ts";
+import { IInventoryItem, IInventoryRecipe, IProductionImport } from "@/types.ts";
+import { clone, downloadFile, sumRecipes } from "@/utils/common.ts";
 
 export const inventoryItems = defaultInventory as IInventoryItem[];
 
@@ -17,19 +17,12 @@ export interface IState {
 	 * then either gets reset to inventory upon cancel in ViewInventoryItem or if saved, inventory becomes inventoryDraft
 	 */
 	inventoryDraft: IInventoryItem[];
-	// This is derived from inventoryDraft
-	powerItems: IInventoryRecipe[];
-	totalPower: number;
-	totalPowerConsumption: number;
 }
 
 const initialState: IState = {
 	inventory: [],
 	inventoryId: "",
 	inventoryDraft: [],
-	powerItems: [],
-	totalPower: 0,
-	totalPowerConsumption: 0,
 };
 
 export const inventorySlice = createSlice({
@@ -108,27 +101,16 @@ export const inventorySlice = createSlice({
 			state.inventory = payload;
 			state.inventoryDraft = state.inventory;
 		},
-		setPower(state, { payload }: PayloadAction<ISetPower>) {
-			state.powerItems = payload.data;
-			state.totalPower = payload.totalPower;
-			state.totalPowerConsumption = payload.totalPowerConsumption;
-		},
 	},
 	selectors: {
 		getInventory(state) {
 			return state.inventory;
 		},
+		getInventoryId(state) {
+			return state.inventoryId;
+		},
 		getInventoryDraft(state) {
 			return state.inventoryDraft;
-		},
-		getPowerItems(state) {
-			return state.powerItems;
-		},
-		getPowerTotal(state) {
-			return state.totalPower;
-		},
-		getPowerConsumption(state) {
-			return state.totalPowerConsumption;
 		},
 		getInventoryItem(state, itemId: string) {
 			return findInventoryItemById(state.inventoryDraft, itemId);
@@ -136,9 +118,9 @@ export const inventorySlice = createSlice({
 	},
 });
 
-export const { setPower, resetDraftInventory, updateDraftInventory, importInventory, deleteInventory, addRecipe, updateRecipe, deleteRecipe, loadInventory, saveInventory } = inventorySlice.actions;
+export const { resetDraftInventory, updateDraftInventory, importInventory, deleteInventory, addRecipe, updateRecipe, deleteRecipe, loadInventory, saveInventory } = inventorySlice.actions;
 
-export const { getPowerTotal, getPowerConsumption, getPowerItems, getInventoryDraft, getInventory, getInventoryItem } = inventorySlice.selectors;
+export const { getInventoryId, getInventoryDraft, getInventory, getInventoryItem } = inventorySlice.selectors;
 
 export function findInventoryItemById(inventory: IInventoryItem[], itemId: string) {
 	return inventory.find(({ id }) => id === itemId);
@@ -147,8 +129,12 @@ export function findInventoryItemById(inventory: IInventoryItem[], itemId: strin
 export function downloadInventory(): AppThunk {
 	return function thunk(_dispatch, getState) {
 		const inventory = getInventory(getState());
+		const generators = getGenerators(getState());
 		const factoryName = getActiveFactory(getState())?.name;
-		downloadFile(new Blob([JSON.stringify(inventory)], {
+		downloadFile(new Blob([JSON.stringify({
+			inventory,
+			generators,
+		})], {
 			type: "application/json",
 		}), factoryName);
 	};
@@ -164,47 +150,16 @@ export function resetInventoryDraftThunk(): AppThunk {
 export function clearInventoryThunk(): AppThunk {
 	return function thunk(dispatch) {
 		dispatch(saveInventory(true));
+		dispatch(savePowerGeneratorsThunk(true));
 		dispatch(loadFactoryInventoryThunk());
 	};
 }
 
-export function importInventoryThunk(inventory: IInventoryItem[]): AppThunk {
+export function importInventoryThunk({ inventory, generators }: IProductionImport): AppThunk {
 	return function thunk(dispatch) {
 		dispatch(importInventory(inventory));
 		dispatch(saveInventory(false));
-	};
-}
-
-export function loadPowerThunk(): AppThunk {
-	return function thunk(dispatch, getState) {
-		const inventory = getInventoryDraft(getState());
-		const outputRecipes: IInventoryRecipe[] = [];
-		let totalConsumption = 0;
-		inventory.forEach(({ recipes }) => {
-			for (const recipe of recipes) {
-				const found = outputRecipes.find((record) => record.id === recipe.id);
-				if (found) {
-					continue;
-				}
-				const powerConsumption = calculateMachinePower({
-					basePower: recipe.basePower,
-					somersloop: recipe.somersloopValue,
-					overclock: recipe.overclockValue,
-					machineCount: recipe.machineCount,
-				});
-				totalConsumption += powerConsumption;
-				outputRecipes.push({
-					...recipe,
-					powerConsumption,
-				});
-			}
-		});
-		dispatch(setPower({
-			data: outputRecipes,
-			// TODOJEF: Need to set this
-			totalPower: 0,
-			totalPowerConsumption: round(totalConsumption, 2),
-		}));
+		dispatch(importGeneratorsThunk(generators));
 	};
 }
 

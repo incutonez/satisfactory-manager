@@ -152,4 +152,6 @@ export const machines = [{
 
 machines.sort((lhs, rhs) => lhs.name.localeCompare(rhs.name));
 
+export const machineGenerators = machines.filter(({ powerType }) => powerType === "produces");
+
 export type TMachine = typeof machines[number]["id"];

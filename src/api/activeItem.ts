@@ -21,7 +21,7 @@ export const activeItemSlice = createSlice({
 	initialState,
 	name: "activeItem",
 	reducers: {
-		setSearch(state, { payload }: PayloadAction<string>) {
+		setSearch(state, { payload = "" }: PayloadAction<string | undefined>) {
 			state.currentSearch = payload;
 		},
 		setActiveItem(state, { payload }: PayloadAction<IInventoryItem | undefined>) {

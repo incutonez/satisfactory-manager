@@ -1,4 +1,5 @@
 ﻿import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { version } from "@/../package.json";
 import { getCurrentSearch, setSearch } from "@/api/activeItem.ts";
 import { deleteFactoryThunk, getActiveFactory, getFactories, setActiveFactory } from "@/api/factories.ts";
@@ -9,12 +10,14 @@ import { BaseMenuItem } from "@/components/BaseMenuItem.tsx";
 import { ComboBox } from "@/components/ComboBox.tsx";
 import { FieldText } from "@/components/FieldText.tsx";
 import { IconAdd, IconDelete, IconDownload, IconEdit, IconImport, IconRevert } from "@/components/Icons.tsx";
+import { RouteCreate, RouteViewPowerGenerator } from "@/routes.ts";
 import { useAppDispatch, useAppSelector } from "@/store.ts";
 import { ViewFactory } from "@/views/ViewFactory.tsx";
 import { ViewImport } from "@/views/ViewImport.tsx";
 
 export function AppHeader() {
 	const dispatch = useAppDispatch();
+	const navigate = useNavigate();
 	const factories = useAppSelector(getFactories);
 	const activeFactory = useAppSelector(getActiveFactory);
 	const search = useAppSelector(getCurrentSearch);
@@ -59,6 +62,15 @@ export function AppHeader() {
 
 	function onSetSearch(value = "") {
 		dispatch(setSearch(value));
+	}
+
+	function onClickAddGenerator() {
+		navigate({
+			to: RouteViewPowerGenerator,
+			params: {
+				generatorId: RouteCreate,
+			},
+		});
 	}
 
 	return (
@@ -127,6 +139,11 @@ export function AppHeader() {
 						title="Add New Factory"
 						icon={IconAdd}
 						onClick={onClickAddFactory}
+					/>
+					<BaseButton
+						text="Generator"
+						icon={IconAdd}
+						onClick={onClickAddGenerator}
 					/>
 				</section>
 				<section className="ml-auto flex space-x-2">

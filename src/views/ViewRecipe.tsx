@@ -2,7 +2,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { getActiveItemRecipe, saveItemThunk } from "@/api/activeItem.ts";
 import { Miners, NodeTypes, TNodeType } from "@/api/data.ts";
-import { getPowerConsumption, getPowerTotal } from "@/api/inventory.ts";
 import { machines, TMachine } from "@/api/machines.ts";
 import { recipes } from "@/api/recipes.ts";
 import { BaseButton, IBaseButton } from "@/components/BaseButton.tsx";
@@ -14,9 +13,10 @@ import { IconSave } from "@/components/Icons.tsx";
 import { RouteViewItem } from "@/routes.ts";
 import { useAppDispatch, useAppSelector } from "@/store.ts";
 import { INodeType, IRecipe, TItemKey, TRecipeType } from "@/types.ts";
-import { calculateMachinePower, calculateSomersloop, formatNumber } from "@/utils/common.ts";
+import { calculateMachinePower, calculateSomersloop } from "@/utils/common.ts";
 import { RecipeItems } from "@/views/recipe/RecipeItems.tsx";
 import { RecipeMachine } from "@/views/shared/CellItem.tsx";
+import { TablePower } from "@/views/shared/TablePower.tsx";
 
 export interface IViewRecipe extends IBaseDialog {
 	recipeId?: string;
@@ -60,28 +60,19 @@ export function ViewRecipeSave({ record, ...props }: IViewRecipeSave) {
 
 export function ViewRecipeItems({ record, basePower, recipeId, nodeTypeMultiplier, setSelectedNodeType, setNodeType, setMachineId, machineId, nodeType, overclock, setOverclock, somersloop, setSomersloop, machineCount, setMachineCount, itemId }: IViewRecipeItems) {
 	const overclockValue = useMemo(() => overclock / 100, [overclock]);
-	const totalPower = useAppSelector(getPowerTotal);
-	const currentConsumption = useAppSelector(getPowerConsumption);
 	const activeItemRecipe = useAppSelector((state) => getActiveItemRecipe(state, recipeId));
-	const currentConsumptionAdjusted = useMemo(() => currentConsumption - calculateMachinePower({
+	const consumptionAdjusted = useMemo(() => calculateMachinePower({
 		somersloop: activeItemRecipe?.somersloopValue ?? 0,
 		overclock: activeItemRecipe?.overclockValue ?? 100,
 		machineCount: activeItemRecipe?.machineCount ?? 1,
 		basePower: activeItemRecipe?.basePower ?? 0,
-	}), [
-		activeItemRecipe?.somersloopValue,
-		activeItemRecipe?.overclockValue,
-		activeItemRecipe?.machineCount,
-		currentConsumption,
-		activeItemRecipe?.basePower,
-	]);
+	}), [activeItemRecipe?.somersloopValue, activeItemRecipe?.overclockValue, activeItemRecipe?.machineCount, activeItemRecipe?.basePower]);
 	const recipePower = useMemo(() => calculateMachinePower({
 		somersloop,
 		overclock,
 		machineCount,
 		basePower,
 	}), [somersloop, overclock, machineCount, basePower]);
-	const remainingPower = useMemo(() => totalPower - currentConsumptionAdjusted - recipePower, [totalPower, currentConsumptionAdjusted, recipePower]);
 
 	if (!record) {
 		return;
@@ -197,38 +188,11 @@ export function ViewRecipeItems({ record, basePower, recipeId, nodeTypeMultiplie
 					{nodeTypeNode}
 				</section>
 				<section className="flex flex-col space-y-2 ml-auto">
-					<table className="border-collapse">
-						<tbody>
-							<tr>
-								<td className="py-1 px-2 text-right">Total Power</td>
-								<td className="py-1 px-2 text-right">
-									{formatNumber(totalPower, "MW")}
-								</td>
-							</tr>
-							<tr>
-								<td className="py-1 px-2 text-right">Current Consumption</td>
-								<td className="py-1 px-2 text-right">
-									-
-									{" "}
-									{formatNumber(currentConsumptionAdjusted, "MW")}
-								</td>
-							</tr>
-							<tr>
-								<td className="py-1 px-2 text-right border-b">Recipe Consumption</td>
-								<td className="py-1 px-2 text-right border-b">
-									-
-									{" "}
-									{formatNumber(recipePower, "MW")}
-								</td>
-							</tr>
-							<tr>
-								<td className="py-1 px-2 text-right">Remaining Power</td>
-								<td className="py-1 px-2 text-right">
-									{formatNumber(remainingPower, "MW")}
-								</td>
-							</tr>
-						</tbody>
-					</table>
+					<TablePower
+						recipePower={recipePower}
+						powerType="consumes"
+						consumptionAdjustment={consumptionAdjusted}
+					/>
 				</section>
 			</section>
 			<section className="flex items-center justify-center space-x-4 flex-1">

@@ -1,5 +1,6 @@
 ﻿import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { deleteInventory, loadInventory, loadPowerThunk } from "@/api/inventory.ts";
+import { deleteInventory, loadInventory } from "@/api/inventory.ts";
+import { loadPowerThunk } from "@/api/power.ts";
 import { AppThunk } from "@/store.ts";
 import { uuid } from "@/utils/common.ts";
 

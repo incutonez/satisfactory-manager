@@ -2,7 +2,13 @@
 import justCapitalize from "just-capitalize";
 import { pow, round } from "mathjs";
 import MimeTypes from "mime-types";
-import { ICalculateAmountDisplays, IInventoryRecipe, IMachinePower, TItemKey, TRecipeType } from "@/types.ts";
+import {
+	ICalculateAmountDisplays,
+	ICalculateMachinePower,
+	IInventoryRecipe,
+	TItemKey,
+	TRecipeType,
+} from "@/types.ts";
 
 const CapitalizeWordBoundary = /(?=[A-Z])/;
 
@@ -71,7 +77,7 @@ export function downloadFile(blob: Blob, name = "download", extension = MimeType
 	URL.revokeObjectURL(url);
 }
 
-export function calculateMachinePower({ overclock, machineCount, somersloop, basePower }: IMachinePower) {
+export function calculateMachinePower({ overclock, machineCount, somersloop, basePower }: ICalculateMachinePower) {
 	overclock = round(pow(overclock / 100, 1.321928) as number, 2);
 	somersloop = pow(1 + somersloop, 2) as number;
 	return basePower * somersloop * overclock * machineCount;
