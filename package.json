@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build --mode=GitHubPages",
+    "explode": "npm cache clean --force && npx rimraf package-lock.json **/node_modules --glob && npm i",
     "lint": "npx eslint --fix",
     "preview": "vite preview",
     "generate:items": "npx tsx src/generator.ts",
