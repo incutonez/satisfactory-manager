@@ -1,3 +1,9 @@
+## [2.0.1](https://github.com/incutonez/satisfactory-manager/compare/v2.0.0...v2.0.1) (2025-05-19)
+
+### Bug Fixes
+
+* Add Missing explode Script ([#22](https://github.com/incutonez/satisfactory-manager/issues/22)) ([caed008](https://github.com/incutonez/satisfactory-manager/commit/caed008be341237c33c255a6f34db2e2d13272ed))
+
 ## [2.0.0](https://github.com/incutonez/satisfactory-manager/compare/v1.2.1...v2.0.0) (2025-04-26)
 
 ### ⚠ BREAKING CHANGES
