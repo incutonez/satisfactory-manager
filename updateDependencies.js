@@ -1,5 +1,5 @@
 import { execSync } from "child_process";
-import {existsSync, readdirSync} from "fs";
+import { existsSync, readdirSync } from "fs";
 
 const stdio = [0, 1, 2];
 if (existsSync("packages/")) {
