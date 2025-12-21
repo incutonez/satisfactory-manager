@@ -1,3 +1,9 @@
+## [2.0.2](https://github.com/incutonez/satisfactory-manager/compare/v2.0.1...v2.0.2) (2025-12-21)
+
+### Bug Fixes
+
+* Fixing Issue with Screw Recipes Not Showing ([#34](https://github.com/incutonez/satisfactory-manager/issues/34)) ([0c84861](https://github.com/incutonez/satisfactory-manager/commit/0c848612851e22e1f951128f8e3727f815e191a6))
+
 ## [2.0.1](https://github.com/incutonez/satisfactory-manager/compare/v2.0.0...v2.0.1) (2025-05-19)
 
 ### Bug Fixes
